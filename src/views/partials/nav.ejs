@@ -1,0 +1,197 @@
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .navbar {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  }
+
+  .navbar-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+
+  .navbar-logo {
+    text-decoration: none;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s ease;
+  }
+
+  .navbar-logo:hover {
+    transform: translateY(-1px);
+    color: #2563eb;
+  }
+
+  .navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .navbar-links a {
+    text-decoration: none;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.96rem;
+    padding: 10px 18px;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .navbar-links a:hover {
+    background: #eff6ff;
+    color: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .navbar-links a.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  }
+
+  .logout-form {
+    display: inline;
+  }
+
+  .logout-btn {
+    border: none;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 0.95rem;
+    box-shadow: 0 10px 18px rgba(239, 68, 68, 0.18);
+  }
+
+  .logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 22px rgba(239, 68, 68, 0.28);
+  }
+
+  .navbar-divider {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-container {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 18px;
+    }
+
+    .navbar-logo {
+      justify-content: center;
+    }
+
+    .navbar-links {
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .navbar-links a,
+    .logout-btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    .logout-form {
+      width: 100%;
+    }
+  }
+</style>
+
+<nav class="navbar">
+  <div class="navbar-container">
+
+    <a href="/shop" class="navbar-logo">
+      🛍️ E-Store
+    </a>
+
+    <div class="navbar-links">
+
+      <a href="/shop" class="active">
+        Shop
+      </a>
+
+      <% if (isAuthenticated) { %>
+
+        <a href="/shop/orders">
+          Orders
+        </a>
+
+      <% } %>
+
+      <% if (
+        isAuthenticated &&
+        currentUser.role === 'admin'
+      ) { %>
+
+        <a href="/admin/products">
+          Admin Products
+        </a>
+
+      <% } %>
+
+      <% if (!isAuthenticated) { %>
+
+        <a href="/auth/login">
+          Login
+        </a>
+
+        <a href="/auth/register">
+          Register
+        </a>
+
+      <% } %>
+
+      <% if (isAuthenticated) { %>
+
+        <form
+          action="/auth/logout"
+          method="POST"
+          class="logout-form"
+        >
+          <button
+            type="submit"
+            class="logout-btn"
+          >
+            Logout
+          </button>
+        </form>
+
+      <% } %>
+
+    </div>
+
+  </div>
+</nav>
+
+<hr class="navbar-divider">
