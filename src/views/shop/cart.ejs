@@ -2,140 +2,256 @@
 <html>
 <head>
   <title>Cart</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/shop/style.css">
+  
 </head>
+
 <body>
 
 <%- include('../partials/nav') %>
-<%- include('../partials/flash') %>
 
-<h1>Your Cart</h1>
+<div class="cart-page">
 
-<% if (cart.items.length === 0) { %>
+  <%- include('../partials/flash') %>
 
-  <p>Your cart is empty</p>
+  <div class="cart-header">
 
-<% } %>
+    <div class="cart-badge">
+      🛒 Shopping Cart
+    </div>
 
-<% cart.items.forEach(item => { %>
+    <h1 class="cart-title">
+      Your Cart
+    </h1>
 
-  <div>
-
-    <% if (item.product) { %>
-
-      <img
-        src="/admin/products/<%= item.product.id %>/image"
-        width="120"
-      >
-
-      <h3>
-        <%= item.product.name %>
-      </h3>
-
-      <p>
-        ₹<%= item.product.price %>
-      </p>
-
-    <% } else { %>
-
-      <h3>
-        <%= item.product.name %>
-      </h3>
-
-      <p>
-        ₹<%= item.product.price %>
-      </p>
-
-    <% } %>
-
-    <p>
-      Quantity:
-      <%= item.quantity %>
+    <p class="cart-subtitle">
+      Review your selected products, update quantities, and continue to checkout with confidence.
     </p>
-
-    <p>
-      Subtotal:
-      ₹<%= item.subtotal %>
-    </p>
-
-    <!-- UPDATE -->
-
-    <form
-      action="/shop/cart/update"
-      method="POST"
-    >
-
-      <% if (isAuthenticated) { %>
-
-        <input
-          type="hidden"
-          name="cartItemId"
-          value="<%= item.id %>"
-        >
-
-      <% } else { %>
-
-        <input
-          type="hidden"
-          name="productId"
-          value="<%= item.productId %>"
-        >
-
-      <% } %>
-
-      <input
-        type="number"
-        name="quantity"
-        value="<%= item.quantity %>"
-        min="1"
-      >
-
-      <button type="submit">
-        Update
-      </button>
-
-    </form>
-
-    <!-- REMOVE -->
-
-    <form
-      action="/shop/cart/remove"
-      method="POST"
-    >
-
-      <% if (isAuthenticated) { %>
-
-        <input
-          type="hidden"
-          name="cartItemId"
-          value="<%= item.id %>"
-        >
-
-      <% } else { %>
-
-        <input
-          type="hidden"
-          name="productId"
-          value="<%= item.productId %>"
-        >
-
-      <% } %>
-
-      <button type="submit">
-        Remove
-      </button>
-
-    </form>
-
-    <hr>
 
   </div>
 
-<% }) %>
+  <% if (cart.items.length === 0) { %>
 
-<h2>
-  Total:
-  ₹<%= cart.total %>
-</h2>
+    <div class="empty-state">
+
+      <div class="empty-icon">
+        🛍️
+      </div>
+
+      <h2 class="empty-title">
+        Your Cart is Empty
+      </h2>
+
+      <p class="empty-text">
+        Looks like you haven’t added any products yet. Start exploring and add something amazing to your cart.
+      </p>
+
+      <a
+        href="/shop"
+        class="shop-btn"
+      >
+        Continue Shopping
+      </a>
+
+    </div>
+
+  <% } %>
+
+  <% if (cart.items.length > 0) { %>
+
+    <div class="cart-layout">
+
+      <!-- CART ITEMS -->
+
+      <div class="cart-items">
+
+        <% cart.items.forEach(item => { %>
+
+          <div class="cart-card">
+
+            <div class="product-image-box">
+
+              <% if (item.product) { %>
+
+                <img
+                  src="/admin/products/<%= item.product.id %>/image"
+                  alt="<%= item.product.name %>"
+                  class="product-image"
+                >
+
+              <% } %>
+
+            </div>
+
+            <div class="cart-content">
+
+              <h3 class="product-name">
+                <%= item.product.name %>
+              </h3>
+
+              <div class="product-price">
+                ₹<%= item.product.price %>
+              </div>
+
+              <div class="cart-meta">
+
+                <div class="meta-box">
+                  Quantity: <%= item.quantity %>
+                </div>
+
+                <div class="meta-box">
+                  Subtotal: ₹<%= item.subtotal %>
+                </div>
+
+              </div>
+
+              <div class="cart-actions">
+
+                <!-- UPDATE -->
+
+                <form
+                  action="/shop/cart/update"
+                  method="POST"
+                  class="update-form"
+                >
+
+                  <% if (isAuthenticated) { %>
+
+                    <input
+                      type="hidden"
+                      name="cartItemId"
+                      value="<%= item.id %>"
+                    >
+
+                  <% } else { %>
+
+                    <input
+                      type="hidden"
+                      name="productId"
+                      value="<%= item.productId %>"
+                    >
+
+                  <% } %>
+
+                  <input
+                    type="number"
+                    name="quantity"
+                    value="<%= item.quantity %>"
+                    min="1"
+                    class="quantity-input"
+                  >
+
+                  <button
+                    type="submit"
+                    class="btn btn-update"
+                  >
+                    Update
+                  </button>
+
+                </form>
+
+                <!-- REMOVE -->
+
+                <form
+                  action="/shop/cart/remove"
+                  method="POST"
+                >
+
+                  <% if (isAuthenticated) { %>
+
+                    <input
+                      type="hidden"
+                      name="cartItemId"
+                      value="<%= item.id %>"
+                    >
+
+                  <% } else { %>
+
+                    <input
+                      type="hidden"
+                      name="productId"
+                      value="<%= item.productId %>"
+                    >
+
+                  <% } %>
+
+                  <button
+                    type="submit"
+                    class="btn btn-remove"
+                  >
+                    Remove
+                  </button>
+
+                </form>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        <% }) %>
+
+      </div>
+
+      <!-- SUMMARY -->
+
+      <div class="summary-card">
+
+        <h2 class="summary-title">
+          Order Summary
+        </h2>
+
+        <div class="summary-row">
+
+          <span>
+            Items
+          </span>
+
+          <span>
+            <%= cart.items.length %>
+          </span>
+
+        </div>
+
+        <div class="summary-row">
+
+          <span>
+            Shipping
+          </span>
+
+          <span>
+            Free
+          </span>
+
+        </div>
+
+        <div class="summary-total">
+
+          <span class="total-label">
+            Total
+          </span>
+
+          <span class="total-price">
+            ₹<%= cart.total %>
+          </span>
+
+        </div>
+
+        <button class="checkout-btn">
+          Proceed to Checkout
+        </button>
+
+      </div>
+
+    </div>
+
+  <% } %>
+
+</div>
 
 </body>
 </html>

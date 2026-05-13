@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
 const sequelize = require("./config/db");
+const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "./public")));
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
@@ -32,6 +33,7 @@ app.use(
   }),
 );
 app.use(flash());
+app.use(express.json());
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.user;
@@ -46,9 +48,10 @@ app.use((req, res, next) => {
 app.use("/auth", authRoutes);
 app.use("/shop", shopRoutes);
 app.use("/admin", adminRoutes);
+app.use("/webhooks", webhookRoutes);
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);

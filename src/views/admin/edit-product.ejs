@@ -2,83 +2,215 @@
 <html>
 <head>
   <title>Edit Product</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <link rel="stylesheet" href="/admin/style.css">
+ 
 </head>
+
 <body>
 
 <%- include('../partials/nav') %>
-<%- include('../partials/flash') %>
 
-<h1>Edit Product</h1>
+<div class="page-wrapper">
 
-<% if (errors.length > 0) { %>
-  <ul>
-    <% errors.forEach(error => { %>
-      <li><%= error.msg %></li>
-    <% }) %>
-  </ul>
-<% } %>
+  <div class="edit-card">
 
-<form
-  action="/admin/products/<%= product.id %>"
-  method="POST"
-  enctype="multipart/form-data"
->
+    <%- include('../partials/flash') %>
 
-  <img
-    src="/admin/products/<%= product.id %>/image"
-    width="150"
-  >
+    <div class="page-header">
 
-  <br><br>
+      <div class="page-badge">
+        ✏️ Product Management
+      </div>
 
-  <input
-    type="text"
-    name="name"
-    value="<%= product.name %>"
-  >
+      <h1 class="page-title">
+        Edit Product
+      </h1>
 
-  <br><br>
+      <p class="page-subtitle">
+        Update product information, improve listings, and keep your store inventory fresh and accurate.
+      </p>
 
-  <textarea
-    name="description"
-  ><%= product.description %></textarea>
+    </div>
 
-  <br><br>
+    <% if (errors.length > 0) { %>
 
-  <input
-    type="number"
-    step="0.01"
-    name="price"
-    value="<%= product.price %>"
-  >
+      <div class="error-box">
 
-  <br><br>
+        <ul>
 
-  <input
-    type="number"
-    name="stock"
-    value="<%= product.stock %>"
-  >
+          <% errors.forEach(error => { %>
 
-  <br><br>
+            <li>
+              <%= error.msg %>
+            </li>
 
-  <input
-    type="text"
-    name="category"
-    value="<%= product.category %>"
-  >
+          <% }) %>
 
-  <br><br>
+        </ul>
 
-  <input type="file" name="image">
+      </div>
 
-  <br><br>
+    <% } %>
 
-  <button type="submit">
-    Save Changes
-  </button>
+    <div class="edit-layout">
 
-</form>
+      <!-- IMAGE SECTION -->
+
+      <div class="image-section">
+
+        <div class="image-card">
+
+          <img
+            src="/admin/products/<%= product.id %>/image"
+            alt="<%= product.name %>"
+            class="product-image"
+          >
+
+          <div class="image-label">
+            Current Product Image
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- FORM SECTION -->
+
+      <form
+        action="/admin/products/<%= product.id %>"
+        method="POST"
+        enctype="multipart/form-data"
+        class="edit-form"
+      >
+
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+
+            <label class="form-label">
+              Product Name
+            </label>
+
+            <input
+              type="text"
+              name="name"
+              class="form-input"
+              value="<%= product.name %>"
+            >
+
+          </div>
+
+          <div class="form-group full-width">
+
+            <label class="form-label">
+              Product Description
+            </label>
+
+            <textarea
+              name="description"
+              class="form-textarea"
+            ><%= product.description %></textarea>
+
+          </div>
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Product Price
+            </label>
+
+            <input
+              type="number"
+              step="0.01"
+              name="price"
+              class="form-input"
+              value="<%= product.price %>"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Stock Quantity
+            </label>
+
+            <input
+              type="number"
+              name="stock"
+              class="form-input"
+              value="<%= product.stock %>"
+            >
+
+          </div>
+
+          <div class="form-group full-width">
+
+            <label class="form-label">
+              Product Category
+            </label>
+
+            <input
+              type="text"
+              name="category"
+              class="form-input"
+              value="<%= product.category %>"
+            >
+
+          </div>
+
+          <div class="form-group full-width">
+
+            <label class="form-label">
+              Replace Product Image
+            </label>
+
+            <div class="upload-box">
+
+              <input
+                type="file"
+                name="image"
+                class="form-file"
+              >
+
+              <div class="upload-text">
+                Upload a new image only if you want to replace the current product image.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+          >
+            Save Changes
+          </button>
+
+          <a
+            href="/admin/products"
+            class="btn btn-secondary"
+          >
+            Back to Products
+          </a>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
 
 </body>
 </html>

@@ -1,37 +1,148 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= product.name %></title>
-  </head>
-  <body>
-    <%- include('../partials/nav') %>
+<head>
+  <title><%= product.name %></title>
 
-    <h1><%= product.name %></h1>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <img src="/admin/products/<%= product.id %>/image" width="300" />
+  <link rel="stylesheet" href="/shop/style.css">
+</head>
 
-    <p>
-      <strong>Price:</strong>
-      ₹<%= product.price %>
-    </p>
+<body>
 
-    <p>
-      <strong>Stock:</strong>
-      <%= product.stock %>
-    </p>
+  <%- include('../partials/nav') %>
 
-    <p>
-      <strong>Category:</strong>
-      <%= product.category %>
-    </p>
+  <div class="product-page">
 
-    <p><%= product.description %></p>
+    <div class="product-layout">
 
-    <a href="/shop"> Back to Shop </a>
-    <form action="/shop/cart" method="POST">
-      <input type="hidden" name="productId" value="<%= product.id %>" />
+      <!-- PRODUCT IMAGE -->
 
-      <button type="submit">Add to Cart</button>
-    </form>
-  </body>
+      <div class="product-image-card">
+
+        <img
+          src="/admin/products/<%= product.id %>/image"
+          alt="<%= product.name %>"
+          class="product-image"
+        >
+
+      </div>
+
+      <!-- PRODUCT DETAILS -->
+
+      <div class="product-details">
+
+        <div class="product-category">
+          <%= product.category %>
+        </div>
+
+        <h1 class="product-title">
+          <%= product.name %>
+        </h1>
+
+        <div class="product-price">
+          ₹<%= product.price %>
+        </div>
+
+        <div class="product-highlight">
+          🚚 Fast Delivery • Premium Quality • Secure Shopping
+        </div>
+
+        <div class="product-meta-grid">
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Stock Status
+            </div>
+
+            <div class="meta-value
+              <%= product.stock > 10
+                ? 'stock-in'
+                : product.stock > 0
+                ? 'stock-low'
+                : 'stock-out'
+              %>
+            ">
+              <% if (product.stock > 10) { %>
+                In Stock (<%= product.stock %>)
+              <% } else if (product.stock > 0) { %>
+                Low Stock (<%= product.stock %>)
+              <% } else { %>
+                Out of Stock
+              <% } %>
+            </div>
+
+          </div>
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Category
+            </div>
+
+            <div class="meta-value">
+              <%= product.category %>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="description-card">
+
+          <h3 class="description-title">
+            Product Description
+          </h3>
+
+          <p>
+            <%= product.description %>
+          </p>
+
+        </div>
+
+        <div class="action-buttons">
+
+          <a
+            href="/shop"
+            class="btn btn-secondary"
+          >
+            ← Back to Shop
+          </a>
+
+          <form action="/shop/cart" method="POST">
+
+            <input
+              type="hidden"
+              name="productId"
+              value="<%= product.id %>"
+            >
+
+            <input
+              type="hidden"
+              name="quantity"
+              value="1"
+            >
+
+            <button
+              class="btn btn-primary"
+              type="submit"
+              <%= product.stock <= 0 ? 'disabled' : '' %>
+            >
+              🛒
+              <%= product.stock > 0 ? 'Add to Cart' : 'Out of Stock' %>
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
 </html>

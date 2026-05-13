@@ -1,11 +1,11 @@
 {
-  "name": "e-commarce-(mysql)",
+  "name": "e-commarce-store",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node --watch server.js"
+    "dev": "nodemon src/app.js",
+    "start": "node --watch src/app.js"
   },
   "keywords": [],
   "author": "",

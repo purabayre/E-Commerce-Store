@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Orders</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/shop/style.css">
+  
+</head>
+
+<body>
+
+<%- include('../partials/nav') %>
+
+<div class="orders-page">
+
+  <%- include('../partials/flash') %>
+
+  <div class="orders-header">
+
+    <div class="orders-badge">
+      📦 Order History
+    </div>
+
+    <h1 class="orders-title">
+      Your Orders
+    </h1>
+
+    <p class="orders-subtitle">
+      Track your purchases, review ordered items, and stay updated with your latest order activity.
+    </p>
+
+  </div>
+
+  <% if (orders.length === 0) { %>
+
+    <div class="empty-state">
+
+      <div class="empty-icon">
+        🛒
+      </div>
+
+      <h2 class="empty-title">
+        No Orders Found
+      </h2>
+
+      <p class="empty-text">
+        You haven’t placed any orders yet. Start shopping and discover amazing products.
+      </p>
+
+      <a
+        href="/shop"
+        class="shop-btn"
+      >
+        Start Shopping
+      </a>
+
+    </div>
+
+  <% } %>
+
+  <% if (orders.length > 0) { %>
+
+    <div class="orders-grid">
+
+      <% orders.forEach(order => { %>
+
+        <div class="order-card">
+
+          <div class="order-top">
+
+            <div class="order-left">
+
+              <h2 class="order-id">
+                Order #<%= order.id %>
+              </h2>
+
+              <div class="order-meta">
+
+                <div class="meta-box">
+                  Total: ₹<%= order.totalAmount %>
+                </div>
+
+                <div class="meta-box">
+                  Items: <%= order.OrderItems.length %>
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="status-badge">
+              <%= order.status %>
+            </div>
+
+          </div>
+
+          <div class="order-body">
+
+            <h3 class="items-title">
+              Ordered Products
+            </h3>
+
+            <ul class="items-list">
+
+              <% order.OrderItems.forEach(item => { %>
+
+                <li class="item-row">
+
+                  <div class="item-name">
+                    <%= item.Product.name %>
+                  </div>
+
+                  <div class="item-quantity">
+                    Quantity × <%= item.quantity %>
+                  </div>
+
+                </li>
+
+              <% }) %>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+      <% }) %>
+
+    </div>
+
+  <% } %>
+
+</div>
+
+</body>
+</html>

@@ -2,56 +2,140 @@
 <html>
 <head>
   <title>Products</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/admin/style.css">
+ 
 </head>
+
 <body>
 
 <%- include('../partials/nav') %>
-<%- include('../partials/flash') %>
 
-<h1>Admin Products</h1>
+<div class="admin-wrapper">
 
-<a href="/admin/products/add">
-  Add Product
-</a>
+  <%- include('../partials/flash') %>
 
-<hr>
+  <div class="admin-header">
 
-<% if (products.length === 0) { %>
-  <p>No products found</p>
-<% } %>
+    <div class="header-content">
 
-<% products.forEach(product => { %>
+      <div class="header-badge">
+        🛒 Admin Dashboard
+      </div>
 
-  <div>
+      <h1 class="page-title">
+        Admin Products
+      </h1>
 
-    <img
-      src="/admin/products/<%= product.id %>/image"
-      width="150"
+      <p class="page-subtitle">
+        Manage your products, update listings, and maintain your online store inventory.
+      </p>
+
+    </div>
+
+    <a
+      href="/admin/products/add"
+      class="add-btn"
     >
-
-    <h3><%= product.name %></h3>
-
-    <p>₹<%= product.price %></p>
-
-    <a href="/admin/products/<%= product.id %>/edit">
-      Edit
+      + Add Product
     </a>
-
-    <form
-      action="/admin/products/<%= product.id %>/delete"
-      method="POST"
-      style="display:inline;"
-    >
-      <button type="submit">
-        Delete
-      </button>
-    </form>
 
   </div>
 
-  <hr>
+  <% if (products.length === 0) { %>
 
-<% }) %>
+    <div class="empty-state">
+
+      <div class="empty-icon">
+        📦
+      </div>
+
+      <h2 class="empty-title">
+        No Products Found
+      </h2>
+
+      <p class="empty-text">
+        Start building your store by adding your first amazing product.
+      </p>
+
+      <a
+        href="/admin/products/add"
+        class="add-btn"
+      >
+        Add Your First Product
+      </a>
+
+    </div>
+
+  <% } %>
+
+  <% if (products.length > 0) { %>
+
+    <div class="products-grid">
+
+      <% products.forEach(product => { %>
+
+        <div class="product-card">
+
+          <div class="product-image-wrapper">
+
+            <img
+              src="/admin/products/<%= product.id %>/image"
+              alt="<%= product.name %>"
+              class="product-image"
+            >
+
+          </div>
+
+          <div class="product-content">
+
+            <h3 class="product-title">
+              <%= product.name %>
+            </h3>
+
+            <div class="product-price">
+              ₹<%= product.price %>
+            </div>
+
+            <div class="product-actions">
+
+              <a
+                href="/admin/products/<%= product.id %>/edit"
+                class="action-btn edit-btn"
+              >
+                Edit
+              </a>
+
+              <form
+                action="/admin/products/<%= product.id %>/delete"
+                method="POST"
+                class="delete-form"
+              >
+
+                <button
+                  type="submit"
+                  class="action-btn delete-btn"
+                >
+                  Delete
+                </button>
+
+              </form>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      <% }) %>
+
+    </div>
+
+  <% } %>
+
+</div>
 
 </body>
 </html>

@@ -3,162 +3,211 @@
 <head>
   <title>Shop</title>
 
-  <style>
-    .product-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .product-card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      width: 250px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/shop/style.css">
+  
 </head>
+
 <body>
 
 <%- include('../partials/nav') %>
-<%- include('../partials/flash') %>
 
-<h1>Shop</h1>
+<div class="shop-container">
 
-<!-- SEARCH -->
+  <%- include('../partials/flash') %>
 
-<form action="/shop" method="GET">
+  <div class="shop-header">
+    <h1 class="shop-title">
+      Discover Amazing Products
+    </h1>
 
-  <input
-    type="text"
-    name="search"
-    placeholder="Search products..."
-    value="<%= searchTerm %>"
-  >
-
-  <button type="submit">
-    Search
-  </button>
-
-</form>
-
-<br>
-
-<!-- CATEGORY FILTER -->
-
-<form action="/shop" method="GET">
-
-  <select name="category">
-
-    <option value="">
-      All Categories
-    </option>
-
-    <% categories.forEach(cat => { %>
-
-      <option
-        value="<%= cat.category %>"
-        <%= selectedCategory === cat.category
-          ? 'selected'
-          : ''
-        %>
-      >
-        <%= cat.category %>
-      </option>
-
-    <% }) %>
-
-  </select>
-
-  <button type="submit">
-    Filter
-  </button>
-
-</form>
-
-<hr>
-
-<!-- PRODUCTS -->
-
-<div class="product-grid">
-
-<% if (products.length === 0) { %>
-  <p>No products found</p>
-<% } %>
-
-<% products.forEach(product => { %>
-
-  <div class="product-card">
-    <form action="/shop/cart" method="POST">
-
-  <input
-    type="hidden"
-    name="productId"
-    value="<%= product.id %>"
-  >
-
-  <button type="submit">
-    Add to Cart
-  </button>
-
-</form>
-
-    <img
-      src="/admin/products/<%= product.id %>/image"
-      width="200"
-    >
-
-    <h3>
-      <%= product.name %>
-    </h3>
-
-    <p>
-      ₹<%= product.price %>
+    <p class="shop-subtitle">
+      Explore premium products with modern shopping experience.
     </p>
+  </div>
 
-    <p>
-      Category:
-      <%= product.category %>
-    </p>
+  <!-- FILTERS -->
 
-    <a href="/shop/products/<%= product.id %>">
-      View Details
-    </a>
+  <div class="filters-wrapper">
+
+    <!-- SEARCH -->
+
+    <div class="filter-card">
+
+      <label class="filter-label">
+        Search Products
+      </label>
+
+      <form action="/shop" method="GET">
+
+        <div class="filter-row">
+
+          <input
+            type="text"
+            name="search"
+            class="filter-input"
+            placeholder="Search products..."
+            value="<%= searchTerm %>"
+          >
+
+          <button
+            type="submit"
+            class="filter-btn"
+          >
+            Search
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- CATEGORY FILTER -->
+
+    <div class="filter-card">
+
+      <label class="filter-label">
+        Filter By Category
+      </label>
+
+      <form action="/shop" method="GET">
+
+        <div class="filter-row">
+
+          <select
+            name="category"
+            class="filter-select"
+          >
+
+            <option value="">
+              All Categories
+            </option>
+
+            <% categories.forEach(cat => { %>
+
+              <option
+                value="<%= cat.category %>"
+                <%= selectedCategory === cat.category
+                  ? 'selected'
+                  : ''
+                %>
+              >
+                <%= cat.category %>
+              </option>
+
+            <% }) %>
+
+          </select>
+
+          <button
+            type="submit"
+            class="filter-btn"
+          >
+            Filter
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
 
   </div>
 
-<% }) %>
+  <!-- PRODUCTS -->
 
-</div>
+  <div class="product-grid">
 
-<hr>
+    <% if (products.length === 0) { %>
 
-<!-- PAGINATION -->
+      <div class="empty-state">
 
-<div>
+        <h2>
+          No Products Found
+        </h2>
 
-  <% if (hasPreviousPage) { %>
+        <p>
+          Try searching with different keywords or categories.
+        </p>
 
-    <a
-      href="/shop?page=<%= previousPage %>&category=<%= selectedCategory %>&search=<%= searchTerm %>"
-    >
-      Previous
-    </a>
+      </div>
 
-  <% } %>
+    <% } %>
 
-  <span>
-    Page <%= currentPage %>
-  </span>
+    <% products.forEach(product => { %>
 
-  <% if (hasNextPage) { %>
+      <div class="product-card">
 
-    <a
-      href="/shop?page=<%= nextPage %>&category=<%= selectedCategory %>&search=<%= searchTerm %>"
-    >
-      Next
-    </a>
+        <div class="product-image-wrapper">
 
-  <% } %>
+          <img
+            src="/admin/products/<%= product.id %>/image"
+            alt="<%= product.name %>"
+            class="product-image"
+          >
+
+        </div>
+
+        <div class="product-content">
+
+          <div class="product-category">
+            <%= product.category %>
+          </div>
+
+          <h3 class="product-name">
+            <%= product.name %>
+          </h3>
+
+          <div class="product-price">
+            ₹<%= product.price %>
+          </div>
+
+          <a
+            href="/shop/products/<%= product.id %>"
+            class="product-btn"
+          >
+            View Details
+          </a>
+
+        </div>
+
+      </div>
+
+    <% }) %>
+
+  </div>
+
+  <!-- PAGINATION -->
+
+  <div class="pagination">
+
+    <% if (hasPreviousPage) { %>
+
+      <a
+        href="/shop?page=<%= previousPage %>&category=<%= selectedCategory %>&search=<%= searchTerm %>"
+      >
+        ← Previous
+      </a>
+
+    <% } %>
+
+    <span>
+      Page <%= currentPage %>
+    </span>
+
+    <% if (hasNextPage) { %>
+
+      <a
+        href="/shop?page=<%= nextPage %>&category=<%= selectedCategory %>&search=<%= searchTerm %>"
+      >
+        Next →
+      </a>
+
+    <% } %>
+
+  </div>
 
 </div>
 
