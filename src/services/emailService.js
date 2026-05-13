@@ -1,27 +1,28 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
-
+  sendEmail: true,
+  host: process.env.MAILTRAP_HOST,
+  port: process.env.MAILTRAP_PORT,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: process.env.MAILTRAP_USER,
+    pass: process.env.MAILTRAP_PASS,
   },
 });
 
-exports.sendOrderConfirmation = async (email, order) => {
-  await transporter.sendMail({
-    to: email,
+exports.sendEmail = async (to, subject, html) => {
+  try {
+    const from = process.env.MAILTRAP_USER;
+    await transporter.sendMail({
+      from,
+      to,
+      subject,
+      html,
+    });
 
-    from: process.env.MAIL_FROM,
-
-    subject: "Order Confirmation",
-
-    html: `
-      <h1>Thank You!</h1>
-
-      <p>Your order #${order.id} has been placed successfully.</p>
-    `,
-  });
+    return { success };
+  } catch (error) {
+    console.error("Error sending email:", error.message);
+    return { success: false, error: error.message };
+  }
 };

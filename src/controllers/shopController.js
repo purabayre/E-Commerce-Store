@@ -249,9 +249,9 @@ exports.getCheckout = async (req, res, next) => {
 
       mode: "payment",
 
-      success_url: `${process.env.APP_URL}/shop/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `http://localhost:${process.env.PORT}/shop/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${process.env.APP_URL}/shop/checkout/cancel`,
+      cancel_url: `http://localhost:${process.env.PORT}/shop/checkout/cancel`,
     });
 
     res.redirect(session.url);
@@ -345,7 +345,17 @@ exports.getCheckoutSuccess = async (req, res, next) => {
     });
 
     // Email confirmation
-    await emailService.sendOrderConfirmation(req.session.user.email, order);
+
+    const emailStatus = await emailService.sendEmail(
+      req.session.user.email,
+      "You checkOut successfully",
+      `
+      <h1>Thank You!</h1>
+
+      <p>Your order #${order.id} has been placed successfully.</p>
+    `,
+    );
+    console.log(emailStatus.success);
 
     req.flash("success", "Order placed successfully");
 

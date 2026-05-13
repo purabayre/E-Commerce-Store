@@ -74,6 +74,17 @@
     box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
   }
 
+  .cart-link {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white !important;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+  }
+
+  .cart-link:hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    color: white !important;
+  }
+
   .logout-form {
     display: inline;
   }
@@ -142,6 +153,10 @@
       </a>
 
       <% if (isAuthenticated) { %>
+
+        <a href="/shop/cart" class="cart-link">
+          🛒 Cart
+        </a>
 
         <a href="/shop/orders">
           Orders

@@ -42,6 +42,7 @@ exports.postRegister = async (req, res) => {
       email,
       passwordHash: hashedPassword,
     });
+
     await Cart.create({
       UserId: user.id,
     });
