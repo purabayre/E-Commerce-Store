@@ -25,4 +25,6 @@ router.get("/checkout/cancel", requireAuth, shopController.getCheckoutCancel);
 
 router.get("/orders", requireAuth, shopController.getOrders);
 
+router.get("/orders/:id/invoice", requireAuth, shopController.getInvoice);
+
 module.exports = router;

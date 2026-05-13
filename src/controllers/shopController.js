@@ -3,14 +3,12 @@ const { Product } = require("../models");
 const ITEMS_PER_PAGE = 6;
 const cartService = require("../services/cartService");
 const stripe = require("../config/stripe");
-
 const Cart = require("../models/Cart");
 const CartItem = require("../models/CartItem");
-
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
-
 const emailService = require("../services/emailService");
+const pdfService = require("../services/pdfService");
 
 exports.getShop = async (req, res) => {
   try {
@@ -369,4 +367,43 @@ exports.getCheckoutCancel = (req, res) => {
   req.flash("error", "Payment cancelled");
 
   res.redirect("/shop/cart");
+};
+
+exports.getInvoice = async (req, res, next) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.session.user.id;
+
+    /*
+     * FIND ORDER
+     */
+    const order = await Order.findOne({
+      where: {
+        id: orderId,
+        UserId: userId,
+      },
+      include: [
+        {
+          model: OrderItem,
+          include: [Product],
+        },
+      ],
+    });
+
+    /*
+     * SECURITY CHECK
+     */
+    if (!order) {
+      return res.status(404).render("404", {
+        pageTitle: "Order Not Found",
+      });
+    }
+
+    /*
+     * STREAM PDF
+     */
+    pdfService.generateInvoice(order, res);
+  } catch (err) {
+    next(err);
+  }
 };
