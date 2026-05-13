@@ -39,6 +39,13 @@
         method="POST"
         class="auth-form"
       >
+
+        <input
+          type="hidden"
+          name="_csrf"
+          value="<%= csrfToken %>"
+        >
+
         <div class="form-group">
           <label class="form-label">
             Full Name

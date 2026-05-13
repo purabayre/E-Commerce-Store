@@ -10,6 +10,8 @@ const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
 const sequelize = require("./config/db");
 const webhookRoutes = require("./routes/webhook");
+const csrf = require("csurf");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -17,8 +19,15 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
 app.use(express.static(path.join(__dirname, "./public")));
+app.use(cookieParser());
+app.use(express.json());
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
@@ -49,6 +58,16 @@ app.use("/auth", authRoutes);
 app.use("/shop", shopRoutes);
 app.use("/admin", adminRoutes);
 app.use("/webhooks", webhookRoutes);
+
+app.use((err, req, res, next) => {
+  if (err.code === "EBADCSRFTOKEN") {
+    return res.render("403", {
+      pageTitle: 403,
+    });
+  }
+
+  next(err);
+});
 
 sequelize
   .sync()

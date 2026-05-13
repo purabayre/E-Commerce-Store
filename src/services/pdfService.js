@@ -14,16 +14,20 @@ exports.generateInvoice = (order, res) => {
 
   doc.pipe(res);
 
-  doc.fontSize(26).fillColor("#333").text("E-Commerce Store", {
+  doc.font("Courier").fontSize(26).fillColor("#333").text("E-Commerce Store", {
     align: "center",
   });
+
+  doc
+    .fontSize(14)
+    .text(`------------------------------------------------------------`);
 
   doc.moveDown();
 
   doc
     .fontSize(14)
     .fillColor("#000")
-    .text(`Invoice #: ${order.id}`)
+    .text(`order ID #: ${order.id}`)
     .text(`Order Status: ${order.status}`)
     .text(`Date: ${new Date(order.createdAt).toLocaleString()}`);
 
@@ -33,10 +37,10 @@ exports.generateInvoice = (order, res) => {
 
   doc
     .fontSize(12)
-    .text("Product", 50, tableTop)
+    .text("Product Name", 50, tableTop)
     .text("Qty", 300, tableTop)
     .text("Unit Price", 350, tableTop)
-    .text("Total", 450, tableTop);
+    .text("SubTotal", 449, tableTop);
 
   doc
     .moveTo(50, tableTop + 20)
@@ -66,7 +70,7 @@ exports.generateInvoice = (order, res) => {
   doc
     .fontSize(16)
     .fillColor("#000")
-    .text(`Total: ${total.toFixed(2)}`, 416);
+    .text(`Total: ${total.toFixed(2)}`, 415);
 
   doc.moveDown(3);
 

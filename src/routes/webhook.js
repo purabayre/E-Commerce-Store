@@ -6,12 +6,9 @@ const stripe = require("../config/stripe");
 router.post(
   "/stripe",
   express.raw({ type: "application/json" }),
-
   (req, res) => {
     const signature = req.headers["stripe-signature"];
-
     let event;
-
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
