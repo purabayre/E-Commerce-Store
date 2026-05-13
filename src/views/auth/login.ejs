@@ -4,37 +4,68 @@
   <title><%= pageTitle %></title>
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="stylesheet" href="/auth/style.css">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <link
+    rel="stylesheet"
+    href="/auth/style.css"
+  >
 
 </head>
 
 <body>
+
   <%- include('../partials/nav') %>
+
   <div class="auth-wrapper">
+
     <div class="auth-card">
+
       <%- include('../partials/flash') %>
+
       <div class="auth-header">
+
         <div class="auth-badge">
           Welcome Back
         </div>
+
         <h1 class="auth-title">
           Login
         </h1>
+
         <p class="auth-subtitle">
+          Sign in to continue shopping and manage your account.
         </p>
+
       </div>
-      <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+
+      <% if (
+        typeof errors !== 'undefined' &&
+        errors.length > 0
+      ) { %>
+
         <div class="error-box">
+
           <ul>
+
             <% errors.forEach(error => { %>
+
               <li>
                 <%= error.msg %>
               </li>
+
             <% }) %>
+
           </ul>
+
         </div>
+
       <% } %>
+
       <form
         action="/auth/login"
         method="POST"
@@ -48,47 +79,68 @@
         >
 
         <div class="form-group">
+
           <label class="form-label">
             Email Address
           </label>
+
           <input
             type="email"
             name="email"
             class="form-input"
             placeholder="Enter your email address"
             value="<%= oldInput.email || '' %>"
+            required
           >
+
         </div>
+
         <div class="form-group">
+
           <label class="form-label">
             Password
           </label>
+
           <input
             type="password"
             name="password"
             class="form-input"
             placeholder="Enter your password"
+            required
           >
+
         </div>
+
         <div class="forgot-password">
-          <a href="#">
+
+          <a href="/auth/forgot-password">
             Forgot Password?
           </a>
+
         </div>
+
         <button
           type="submit"
           class="submit-btn"
         >
           Login to Account
         </button>
+
       </form>
+
       <div class="auth-footer">
+
         Don't have an account?
+
         <a href="/auth/register">
           Register
         </a>
+
       </div>
+
     </div>
+
   </div>
+
 </body>
 </html>
