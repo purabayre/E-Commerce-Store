@@ -5,29 +5,27 @@ const express = require("express");
 const session = require("express-session");
 const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const flash = require("connect-flash");
+const csrf = require("csurf");
+const cookieParser = require("cookie-parser");
+
 const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
-const sequelize = require("./config/db");
 const webhookRoutes = require("./routes/webhook");
-const csrf = require("csurf");
-const cookieParser = require("cookie-parser");
+
+const sequelize = require("./config/db");
 
 const app = express();
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "./public")));
-app.use(cookieParser());
+
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
-app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
+
+app.use(cookieParser());
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
@@ -38,19 +36,27 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+
     store: sessionStore,
+
+    cookie: {
+      secure: false,
+    },
   }),
 );
+
 app.use(flash());
-app.use(express.json());
+
+const csrfProtection = csrf({ cookie: true });
+
+app.use(csrfProtection);
 
 app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
   res.locals.isAuthenticated = !!req.session.user;
   res.locals.currentUser = req.session.user || null;
-
   res.locals.errorMessage = req.flash("error");
   res.locals.successMessage = req.flash("success");
-
   next();
 });
 
@@ -61,8 +67,8 @@ app.use("/webhooks", webhookRoutes);
 
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
-    return res.render("403", {
-      pageTitle: 403,
+    return res.status(403).render("403", {
+      pageTitle: "Forbidden",
     });
   }
 
@@ -72,6 +78,8 @@ app.use((err, req, res, next) => {
 sequelize
   .sync()
   .then(() => {
+    sessionStore.sync();
+
     app.listen(process.env.PORT, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);
     });

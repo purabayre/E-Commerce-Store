@@ -123,12 +123,14 @@ exports.postCart = async (req, res) => {
 exports.getCart = async (req, res) => {
   try {
     let cartData;
+    console.log(req.session.user);
 
     if (req.session.user) {
       cartData = await cartService.getUserCart(req.session.user.id);
     } else {
       cartData = await cartService.getGuestCart(req.session);
     }
+    console.log(cartData);
     res.render("shop/cart", {
       pageTitle: "Your Cart",
       cart: cartData,
@@ -353,7 +355,7 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       <p>Your order #${order.id} has been placed successfully.</p>
     `,
     );
-    console.log(emailStatus.success);
+    console.log("checkout seccess email sent:", emailStatus.success);
 
     req.flash("success", "Order placed successfully");
 

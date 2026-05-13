@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const crypto = require("crypto");
 const emailService = require("../services/emailService");
+const { Op } = require("sequelize");
 
 const { User, Cart } = require("../models");
 
@@ -147,7 +148,7 @@ exports.postForgotPassword = async (req, res) => {
 
     const resetLink = `http://localhost:3000/auth/reset/${token}`;
 
-    await emailService.sendEmail(
+    const emailStatus = await emailService.sendEmail(
       user.email,
       "Password Reset",
       `
@@ -157,6 +158,7 @@ exports.postForgotPassword = async (req, res) => {
         <p>This link expires in 1 hour.</p>
       `,
     );
+    console.log("reset password link sent:", emailStatus.success);
 
     req.flash("success", "If that email exists, a reset link has been sent.");
 
@@ -174,7 +176,7 @@ exports.getResetPassword = async (req, res) => {
     const user = await User.findOne({
       where: {
         resetToken: token,
-        resetTokenExpiration: {
+        resetTokenExpiry: {
           [Op.gt]: Date.now(),
         },
       },
