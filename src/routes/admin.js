@@ -13,6 +13,7 @@ router.post(
   "/products",
   requireAdmin,
   upload.single("image"),
+
   productValidation,
   adminController.postAddProduct,
 );

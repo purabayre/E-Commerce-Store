@@ -5,7 +5,7 @@ const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
 const User = require("../models/User");
 const { validationResult } = require("express-validator");
-const { Op, fn, col, literal } = require("sequelize");
+const { Op, fn, literal } = require("sequelize");
 
 exports.getProducts = async (req, res, next) => {
   try {
@@ -84,13 +84,12 @@ exports.getProducts = async (req, res, next) => {
       monthlyRevenue: monthlyRevenue || 0,
       pendingOrdersCount,
       topProducts,
-
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     next(err);
   }
 };
+
 exports.getAddProduct = (req, res) => {
   res.render("admin/add-product", {
     pageTitle: "Add Product",
@@ -102,6 +101,7 @@ exports.getAddProduct = (req, res) => {
 exports.postAddProduct = async (req, res) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
       return res.status(422).render("admin/add-product", {
         pageTitle: "Add Product",
@@ -109,11 +109,15 @@ exports.postAddProduct = async (req, res) => {
         oldInput: req.body,
       });
     }
+
     if (!req.file) {
       req.flash("error", "Product image required");
+
       return res.redirect("/admin/products/add");
     }
+
     const { name, description, price, stock, category } = req.body;
+
     await Product.create({
       name,
       description,
@@ -122,10 +126,13 @@ exports.postAddProduct = async (req, res) => {
       category,
       imagePath: req.file.path,
     });
+
     req.flash("success", "Product created");
+
     res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -133,10 +140,13 @@ exports.postAddProduct = async (req, res) => {
 exports.getEditProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+
     const product = await Product.findByPk(productId);
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
+
     res.render("admin/edit-product", {
       pageTitle: "Edit Product",
       product,
@@ -144,6 +154,7 @@ exports.getEditProduct = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -151,11 +162,15 @@ exports.getEditProduct = async (req, res) => {
 exports.postEditProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+
     const product = await Product.findByPk(productId);
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
+
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
       return res.status(422).render("admin/edit-product", {
         pageTitle: "Edit Product",
@@ -163,7 +178,9 @@ exports.postEditProduct = async (req, res) => {
         errors: errors.array(),
       });
     }
+
     const { name, description, price, stock, category } = req.body;
+
     product.name = name;
     product.description = description;
     product.price = price;
@@ -178,13 +195,18 @@ exports.postEditProduct = async (req, res) => {
           }
         });
       }
+
       product.imagePath = req.file.path;
     }
+
     await product.save();
+
     req.flash("success", "Product updated");
+
     res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -192,16 +214,23 @@ exports.postEditProduct = async (req, res) => {
 exports.postDeleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+
     const product = await Product.findByPk(productId);
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
+
     product.isActive = false;
+
     await product.save();
+
     req.flash("success", "Product deleted");
+
     res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -209,13 +238,17 @@ exports.postDeleteProduct = async (req, res) => {
 exports.getProductImage = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
+
     if (!product || !product.imagePath) {
       return res.status(404).send("Image not found");
     }
+
     const absolutePath = path.join(process.cwd(), product.imagePath);
+
     res.sendFile(absolutePath);
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -281,7 +314,6 @@ exports.getOrders = async (req, res, next) => {
     res.render("admin/orders", {
       pageTitle: "Manage Orders",
       orders,
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     next(err);

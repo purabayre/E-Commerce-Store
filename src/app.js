@@ -5,8 +5,7 @@ const express = require("express");
 const session = require("express-session");
 const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const flash = require("connect-flash");
-const csrf = require("csurf");
-const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 
 const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
@@ -22,10 +21,8 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "./public")));
 
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
-
-app.use(cookieParser());
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
@@ -36,7 +33,6 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-
     store: sessionStore,
 
     cookie: {
@@ -47,32 +43,23 @@ app.use(
 
 app.use(flash());
 
-const csrfProtection = csrf();
-
-// const csrfProtection = csrf();
-
-app.use(csrfProtection);
-
-app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
+app.use("/webhooks", webhookRoutes);
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.user;
   res.locals.currentUser = req.session.user || null;
   res.locals.errorMessage = req.flash("error");
   res.locals.successMessage = req.flash("success");
+
   next();
 });
 
 app.use("/auth", authRoutes);
 app.use("/shop", shopRoutes);
 app.use("/admin", adminRoutes);
-app.use("/webhooks", webhookRoutes);
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(() => {
     sessionStore.sync();
 

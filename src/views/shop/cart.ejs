@@ -119,12 +119,6 @@
                   class="update-form"
                 >
 
-                  <input
-                    type="hidden"
-                    name="_csrf"
-                    value="<%= csrfToken %>"
-                  >
-
                   <% if (isAuthenticated) { %>
 
                     <input
@@ -166,12 +160,6 @@
                   action="/shop/cart/remove"
                   method="POST"
                 >
-
-                  <input
-                    type="hidden"
-                    name="_csrf"
-                    value="<%= csrfToken %>"
-                  >
 
                   <% if (isAuthenticated) { %>
 

@@ -166,6 +166,7 @@
 
       <% if (
         isAuthenticated &&
+        currentUser &&
         currentUser.role === 'admin'
       ) { %>
 
@@ -195,11 +196,7 @@
           class="logout-form"
         >
 
-          <input
-            type="hidden"
-            name="_csrf"
-            value="<%= csrfToken %>"
-          >
+          
 
           <button
             type="submit"

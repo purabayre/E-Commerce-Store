@@ -77,8 +77,6 @@
 
       </div>
 
-
-
       <!-- TOP PRODUCTS -->
 
       <div class="analytics-card">
@@ -142,7 +140,7 @@
 
   </div>
 
-  <% if (products.length === 0) { %>
+  <% if (!products || products.length === 0) { %>
 
     <div class="empty-state">
 
@@ -169,7 +167,7 @@
 
   <% } %>
 
-  <% if (products.length > 0) { %>
+  <% if (products && products.length > 0) { %>
 
     <div class="products-grid">
 
@@ -212,6 +210,8 @@
                 class="delete-form"
               >
 
+               
+
                 <button
                   type="submit"
                   class="action-btn delete-btn"
@@ -232,8 +232,6 @@
     </div>
 
   <% } %>
-
-
 
   <!-- ORDERS SECTION -->
 
@@ -257,7 +255,7 @@
 
   </div>
 
-  <% if (orders.length === 0) { %>
+  <% if (!orders || orders.length === 0) { %>
 
     <div class="empty-state">
 
@@ -277,7 +275,7 @@
 
   <% } %>
 
-  <% if (orders.length > 0) { %>
+  <% if (orders && orders.length > 0) { %>
 
     <div class="orders-table-wrapper">
 
@@ -290,7 +288,7 @@
             <th>Customer</th>
             <th>Total</th>
             <th>Status</th>
-            <th>Created</th>
+            <th>Date</th>
             <th>Action</th>
           </tr>
 
@@ -332,6 +330,8 @@
                     action="/admin/orders/<%= order.id %>/status"
                     method="POST"
                   >
+
+                   
 
                     <button
                       type="submit"
