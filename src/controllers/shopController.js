@@ -1,23 +1,33 @@
 const { Op } = require("sequelize");
-const { Product } = require("../models");
+const { Product, Review, User } = require("../models");
+
 const ITEMS_PER_PAGE = 6;
+
 const cartService = require("../services/cartService");
+
 const stripe = require("../config/stripe");
+
 const Cart = require("../models/Cart");
 const CartItem = require("../models/CartItem");
+
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
+
 const emailService = require("../services/emailService");
 const pdfService = require("../services/pdfService");
 
 exports.getShop = async (req, res) => {
   try {
     const page = +req.query.page || 1;
+
     const category = req.query.category || "";
+
     const search = req.query.search || "";
+
     const whereClause = {
       isActive: true,
     };
+
     if (category) {
       whereClause.category = category;
     }
@@ -47,10 +57,14 @@ exports.getShop = async (req, res) => {
     const totalProducts = await Product.count({
       where: whereClause,
     });
+
     const products = await Product.findAll({
       where: whereClause,
+
       limit: ITEMS_PER_PAGE,
+
       offset: (page - 1) * ITEMS_PER_PAGE,
+
       order: [
         ["stock", "DESC"],
         ["createdAt", "DESC"],
@@ -77,6 +91,7 @@ exports.getShop = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -84,21 +99,59 @@ exports.getShop = async (req, res) => {
 exports.getProductDetail = async (req, res) => {
   try {
     const productId = req.params.id;
+
     const product = await Product.findOne({
       where: {
         id: productId,
         isActive: true,
       },
+
+      include: [
+        {
+          model: Review,
+
+          include: [
+            {
+              model: User,
+              attributes: ["id", "name"],
+            },
+          ],
+
+          order: [["createdAt", "DESC"]],
+        },
+      ],
     });
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
+
+    /*
+     * REVIEW STATS
+     */
+
+    const reviewCount = product.Reviews.length;
+
+    const averageRating =
+      reviewCount > 0
+        ? (
+            product.Reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviewCount
+          ).toFixed(1)
+        : 0;
+
+    product.dataValues.reviewCount = reviewCount;
+
+    product.dataValues.averageRating = averageRating;
+
     res.render("shop/product-detail", {
       pageTitle: product.name,
       product,
+      currentUser: req.session.user,
     });
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -106,23 +159,31 @@ exports.getProductDetail = async (req, res) => {
 exports.postCart = async (req, res) => {
   try {
     const productId = req.body.productId;
+
     const quantity = parseInt(req.body.quantity) || 1;
+
     if (req.session.user) {
       await cartService.addToUserCart(req.session.user.id, productId, quantity);
     } else {
       await cartService.addToGuestCart(req.session, productId, quantity);
     }
+
     req.flash("success", "Added to cart");
+
     res.redirect("/shop/cart");
   } catch (err) {
     console.log(err);
+
     req.flash("error", err.message);
+
     res.redirect("/shop");
   }
 };
+
 exports.getCart = async (req, res) => {
   try {
     let cartData;
+
     console.log(req.session.user);
 
     if (req.session.user) {
@@ -130,13 +191,16 @@ exports.getCart = async (req, res) => {
     } else {
       cartData = await cartService.getGuestCart(req.session);
     }
+
     console.log(cartData);
+
     res.render("shop/cart", {
       pageTitle: "Your Cart",
       cart: cartData,
     });
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -144,9 +208,11 @@ exports.getCart = async (req, res) => {
 exports.postUpdateCart = async (req, res) => {
   try {
     const quantity = parseInt(req.body.quantity);
+
     if (quantity <= 0) {
       return res.redirect("/shop/cart");
     }
+
     if (req.session.user) {
       await cartService.updateUserCartItem(req.body.cartItemId, quantity);
     } else {
@@ -156,11 +222,15 @@ exports.postUpdateCart = async (req, res) => {
         quantity,
       );
     }
+
     req.flash("success", "Cart updated");
+
     res.redirect("/shop/cart");
   } catch (err) {
     console.log(err);
+
     req.flash("error", err.message);
+
     res.redirect("/shop/cart");
   }
 };
@@ -172,10 +242,13 @@ exports.postRemoveCartItem = async (req, res) => {
     } else {
       cartService.removeGuestCartItem(req.session, req.body.productId);
     }
+
     req.flash("success", "Item removed");
+
     res.redirect("/shop/cart");
   } catch (err) {
     console.log(err);
+
     res.status(500).send("Server Error");
   }
 };
@@ -211,7 +284,9 @@ exports.getCheckout = async (req, res, next) => {
     const userId = req.session.user.id;
 
     const cart = await Cart.findOne({
-      where: { UserId: userId },
+      where: {
+        UserId: userId,
+      },
 
       include: [
         {
@@ -223,6 +298,7 @@ exports.getCheckout = async (req, res, next) => {
 
     if (!cart || cart.CartItems.length === 0) {
       req.flash("error", "Cart is empty");
+
       return res.redirect("/shop/cart");
     }
 
@@ -268,7 +344,6 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       return res.redirect("/shop/cart");
     }
 
-    // Prevent duplicate orders
     const existingOrder = await Order.findOne({
       where: {
         stripeSessionId: sessionId,
@@ -283,13 +358,16 @@ exports.getCheckoutSuccess = async (req, res, next) => {
 
     if (session.payment_status !== "paid") {
       req.flash("error", "Payment not completed");
+
       return res.redirect("/shop/cart");
     }
 
     const userId = req.session.user.id;
 
     const cart = await Cart.findOne({
-      where: { UserId: userId },
+      where: {
+        UserId: userId,
+      },
 
       include: [
         {
@@ -309,7 +387,6 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       total += item.Product.price * item.quantity;
     });
 
-    // Create order
     const order = await Order.create({
       UserId: userId,
       totalAmount: total,
@@ -317,7 +394,6 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       stripeSessionId: sessionId,
     });
 
-    // Create order items + decrement stock
     for (const item of cart.CartItems) {
       const product = item.Product;
 
@@ -337,25 +413,23 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       await product.save();
     }
 
-    // Clear cart
     await CartItem.destroy({
       where: {
         CartId: cart.id,
       },
     });
 
-    // Email confirmation
-
     const emailStatus = await emailService.sendEmail(
       req.session.user.email,
       "You checkOut successfully",
       `
-      <h1>Thank You!</h1>
+        <h1>Thank You!</h1>
 
-      <p>Your order #${order.id} has been placed successfully.</p>
-    `,
+        <p>Your order #${order.id} has been placed successfully.</p>
+      `,
     );
-    console.log("checkout seccess email sent:", emailStatus.success);
+
+    console.log("checkout success email sent:", emailStatus.success);
 
     req.flash("success", "Order placed successfully");
 
@@ -374,16 +448,15 @@ exports.getCheckoutCancel = (req, res) => {
 exports.getInvoice = async (req, res, next) => {
   try {
     const orderId = req.params.id;
+
     const userId = req.session.user.id;
 
-    /*
-     * FIND ORDER
-     */
     const order = await Order.findOne({
       where: {
         id: orderId,
         UserId: userId,
       },
+
       include: [
         {
           model: OrderItem,
@@ -392,20 +465,133 @@ exports.getInvoice = async (req, res, next) => {
       ],
     });
 
-    /*
-     * SECURITY CHECK
-     */
     if (!order) {
       return res.status(404).render("404", {
         pageTitle: "Order Not Found",
       });
     }
 
-    /*
-     * STREAM PDF
-     */
     pdfService.generateInvoice(order, res);
   } catch (err) {
     next(err);
+  }
+};
+
+exports.addReview = async (req, res, next) => {
+  try {
+    const productId = req.params.productId;
+
+    const { rating, comment } = req.body;
+
+    const userId = req.session.user.id;
+
+    const product = await Product.findByPk(productId);
+
+    if (!product) {
+      req.flash("error", "Product not found");
+
+      return res.redirect("/shop");
+    }
+
+    const existingReview = await Review.findOne({
+      where: {
+        userId,
+        productId,
+      },
+    });
+
+    if (existingReview) {
+      req.flash("error", "You already reviewed this product");
+
+      return res.redirect(`/shop/product/${productId}`);
+    }
+
+    await Review.create({
+      rating,
+      comment,
+      userId,
+      productId,
+    });
+
+    req.flash("success", "Review added successfully");
+
+    res.redirect(`/shop/product/${productId}`);
+  } catch (err) {
+    console.log(err);
+
+    req.flash("error", "Failed to add review");
+
+    res.redirect("back");
+  }
+};
+exports.updateReview = async (req, res, next) => {
+  try {
+    const reviewId = req.params.reviewId;
+
+    const { rating, comment } = req.body;
+
+    const userId = req.session.user.id;
+
+    const review = await Review.findByPk(reviewId);
+
+    if (!review) {
+      req.flash("error", "Review not found");
+
+      return res.redirect("/shop");
+    }
+
+    // CHECK REVIEW OWNER
+
+    if (review.userId !== userId) {
+      req.flash("error", "Unauthorized action");
+
+      return res.redirect(`/shop/product/${review.productId}`);
+    }
+
+    // UPDATE REVIEW
+
+    review.rating = rating;
+    review.comment = comment;
+
+    await review.save();
+
+    req.flash("success", "Review updated successfully");
+
+    res.redirect(`/shop/product/${review.productId}`);
+  } catch (err) {
+    console.log(err);
+
+    req.flash("error", "Failed to update review");
+
+    res.redirect("back");
+  }
+};
+
+exports.deleteReview = async (req, res, next) => {
+  try {
+    const reviewId = req.params.reviewId;
+
+    const userId = req.session.user.id;
+
+    const review = await Review.findByPk(reviewId);
+
+    if (!review) {
+      req.flash("error", "Review not found");
+
+      return res.redirect("/shop");
+    }
+
+    if (review.userId !== userId) {
+      req.flash("error", "Unauthorized action");
+      return res.redirect(`/shop/product/${review.productId}`);
+    }
+    const productId = review.productId;
+    await review.destroy();
+    req.flash("success", "Review deleted successfully");
+    res.redirect(`/shop/product/${productId}`);
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Failed to delete review");
+    res.redirect("/shop");
   }
 };

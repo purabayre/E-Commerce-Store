@@ -185,80 +185,182 @@
 
       <% if (currentUser) { %>
 
-        <div class="review-form-card">
+        <% const existingReview = product.Reviews?.find(
+          review => review.userId === currentUser.id
+        ); %>
 
-          <form
-            action="/reviews/<%= product.id %>"
-            method="POST"
-          >
+        <% if (existingReview) { %>
 
-            <input
-              type="hidden"
-              name="_csrf"
-              value="<%= csrfToken %>"
+          <div class="review-form-card">
+
+            <h3>
+              Edit Your Review
+            </h3>
+
+            <form
+              action="/shop/reviews/update/<%= existingReview.id %>"
+              method="POST"
             >
 
-            <div class="form-group">
-
-              <label>
-                Rating
-              </label>
-
-              <select
-                name="rating"
-                required
-                class="review-input"
+              <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrfToken %>"
               >
-                <option value="5">
-                  ⭐⭐⭐⭐⭐ (5)
-                </option>
 
-                <option value="4">
-                  ⭐⭐⭐⭐ (4)
-                </option>
+              <div class="form-group">
 
-                <option value="3">
-                  ⭐⭐⭐ (3)
-                </option>
+                <label>
+                  Rating
+                </label>
 
-                <option value="2">
-                  ⭐⭐ (2)
-                </option>
+                <select
+                  name="rating"
+                  required
+                  class="review-input"
+                >
 
-                <option value="1">
-                  ⭐ (1)
-                </option>
+                  <% for(let i = 5; i >= 1; i--) { %>
 
-              </select>
+                    <option
+                      value="<%= i %>"
+                      <%= existingReview.rating === i ? 'selected' : '' %>
+                    >
+                      <%= "⭐".repeat(i) %> (<%= i %>)
+                    </option>
 
-            </div>
+                  <% } %>
 
-            <div class="form-group">
+                </select>
 
-              <label>
-                Your Review
-              </label>
+              </div>
 
-              <textarea
-                name="comment"
-                required
-                rows="4"
-                class="review-input"
-                placeholder="Write your review..."
-              ></textarea>
+              <div class="form-group">
 
-            </div>
+                <label>
+                  Your Review
+                </label>
 
-            <button
-              type="submit"
-              class="btn btn-primary"
+                <textarea
+                  name="comment"
+                  required
+                  rows="4"
+                  class="review-input"
+                ><%= existingReview.comment %></textarea>
+
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                Update Review
+              </button>
+
+            </form>
+
+            <form
+              action="/shop/reviews/delete/<%= existingReview.id %>"
+              method="POST"
+              style="margin-top: 10px;"
             >
-              Submit Review
-            </button>
 
-          </form>
+              <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrfToken %>"
+              >
 
-        </div>
+              <button
+                type="submit"
+                class="btn btn-danger"
+                onclick="return confirm('Delete your review?')"
+              >
+                Delete Review
+              </button>
+
+            </form>
+
+          </div>
+
+        <% } else { %>
+
+          <div class="review-form-card">
+
+            <form
+              action="/reviews/<%= product.id %>"
+              method="POST"
+            >
+
+              <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrfToken %>"
+              >
+
+              <div class="form-group">
+
+                <label>
+                  Rating
+                </label>
+
+                <select
+                  name="rating"
+                  required
+                  class="review-input"
+                >
+                  <option value="5">
+                    ⭐⭐⭐⭐⭐ (5)
+                  </option>
+
+                  <option value="4">
+                    ⭐⭐⭐⭐ (4)
+                  </option>
+
+                  <option value="3">
+                    ⭐⭐⭐ (3)
+                  </option>
+
+                  <option value="2">
+                    ⭐⭐ (2)
+                  </option>
+
+                  <option value="1">
+                    ⭐ (1)
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div class="form-group">
+
+                <label>
+                  Your Review
+                </label>
+
+                <textarea
+                  name="comment"
+                  required
+                  rows="4"
+                  class="review-input"
+                  placeholder="Write your review..."
+                ></textarea>
+
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                Submit Review
+              </button>
+
+            </form>
+
+          </div>
+
+        <% } %>
 
       <% } else { %>
 

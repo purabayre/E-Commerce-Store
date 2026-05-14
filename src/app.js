@@ -12,7 +12,6 @@ const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
 const webhookRoutes = require("./routes/webhook");
-// const reviewRoutes = require("./routes/reviewRoutes");
 
 const sequelize = require("./config/db");
 
@@ -71,7 +70,6 @@ app.use("/auth", authRoutes);
 app.use("/shop", shopRoutes);
 app.use("/admin", adminRoutes);
 app.use("/webhooks", webhookRoutes);
-// app.use("/review", reviewRoutes);
 
 sequelize
   .sync({ alter: true })
