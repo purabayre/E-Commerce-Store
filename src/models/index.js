@@ -9,10 +9,11 @@ const Review = require("./Review");
 User.hasOne(Cart);
 Cart.belongsTo(User);
 
+Product.hasMany(CartItem);
+CartItem.belongsTo(Product);
+
 Cart.hasMany(CartItem);
 CartItem.belongsTo(Cart);
-
-CartItem.belongsTo(Product);
 
 User.hasMany(Order);
 Order.belongsTo(User);
@@ -20,7 +21,9 @@ Order.belongsTo(User);
 Order.hasMany(OrderItem);
 OrderItem.belongsTo(Order);
 
+Product.hasMany(OrderItem);
 OrderItem.belongsTo(Product);
+
 User.hasMany(Review, {
   foreignKey: "userId",
 });

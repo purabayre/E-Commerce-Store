@@ -3,7 +3,8 @@ const sequelize = require("../config/db");
 
 const Order = sequelize.define("Order", {
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM("pending", "processing", "shipped", "delivered"),
+
     defaultValue: "pending",
   },
 
@@ -14,7 +15,21 @@ const Order = sequelize.define("Order", {
 
   stripeSessionId: {
     type: DataTypes.STRING,
-    unique: true,
+  },
+
+  processingAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+
+  shippedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+
+  deliveredAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
   },
 });
 

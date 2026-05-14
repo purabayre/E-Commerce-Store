@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Products</title>
+  <title>Admin Dashboard</title>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/admin/style.css">
- 
+
+  <link rel="stylesheet" href="/admin/style.css">
 </head>
 
 <body>
@@ -17,12 +17,110 @@
 
   <%- include('../partials/flash') %>
 
+  <!-- PRODUCTS SECTION -->
+
   <div class="admin-header">
 
     <div class="header-content">
 
       <div class="header-badge">
         🛒 Admin Dashboard
+      </div>
+
+      <!-- DASHBOARD ANALYTICS -->
+
+      <div class="dashboard-stats">
+
+        <!-- REVENUE -->
+
+        <div class="stat-card">
+
+          <div class="stat-icon">
+            💰
+          </div>
+
+          <div class="stat-content">
+
+            <span class="stat-label">
+              Revenue This Month
+            </span>
+
+            <h2 class="stat-number">
+              ₹<%= Number(monthlyRevenue || 0).toFixed(2) %>
+            </h2>
+
+          </div>
+
+        </div>
+
+        <!-- PENDING ORDERS -->
+
+        <div class="stat-card">
+
+          <div class="stat-icon">
+            📦
+          </div>
+
+          <div class="stat-content">
+
+            <span class="stat-label">
+              Pending Orders
+            </span>
+
+            <h2 class="stat-number">
+              <%= pendingOrdersCount || 0 %>
+            </h2>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- TOP PRODUCTS -->
+
+      <div class="analytics-card">
+
+        <div class="analytics-header">
+
+          <h2>
+            Top 5 Products By Revenue
+          </h2>
+
+        </div>
+
+        <% if (!topProducts || topProducts.length === 0) { %>
+
+          <p class="empty-text">
+            No sales data available.
+          </p>
+
+        <% } else { %>
+
+          <div class="analytics-table">
+
+            <% topProducts.forEach(product => { %>
+
+              <div class="analytics-row">
+
+                <span>
+                  <%= product.Product ? product.Product.name : 'Deleted Product' %>
+                </span>
+
+                <strong>
+                  ₹<%= Number(product.dataValues.revenue).toFixed(2) %>
+                </strong>
+
+              </div>
+
+            <% }) %>
+
+          </div>
+
+        <% } %>
+
       </div>
 
       <h1 class="page-title">
@@ -130,6 +228,137 @@
         </div>
 
       <% }) %>
+
+    </div>
+
+  <% } %>
+
+
+
+  <!-- ORDERS SECTION -->
+
+  <div class="admin-header" style="margin-top: 60px;">
+
+    <div class="header-content">
+
+      <div class="header-badge">
+        📦 Orders
+      </div>
+
+      <h1 class="page-title">
+        Manage Orders
+      </h1>
+
+      <p class="page-subtitle">
+        Track and update customer orders.
+      </p>
+
+    </div>
+
+  </div>
+
+  <% if (orders.length === 0) { %>
+
+    <div class="empty-state">
+
+      <div class="empty-icon">
+        📭
+      </div>
+
+      <h2 class="empty-title">
+        No Orders Found
+      </h2>
+
+      <p class="empty-text">
+        Orders from customers will appear here.
+      </p>
+
+    </div>
+
+  <% } %>
+
+  <% if (orders.length > 0) { %>
+
+    <div class="orders-table-wrapper">
+
+      <table class="orders-table">
+
+        <thead>
+
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <% orders.forEach(order => { %>
+
+            <tr>
+
+              <td>
+                #<%= order.id %>
+              </td>
+
+              <td>
+                <%= order.User ? order.User.name : 'Unknown User' %>
+              </td>
+
+              <td>
+                ₹<%= order.totalAmount %>
+              </td>
+
+              <td>
+                <span class="status-badge status-<%= order.status %>">
+                  <%= order.status %>
+                </span>
+              </td>
+
+              <td>
+                <%= new Date(order.createdAt).toLocaleDateString() %>
+              </td>
+
+              <td>
+
+                <% if (order.status !== 'delivered') { %>
+
+                  <form
+                    action="/admin/orders/<%= order.id %>/status"
+                    method="POST"
+                  >
+
+                    <button
+                      type="submit"
+                      class="action-btn edit-btn"
+                    >
+                      Update Status
+                    </button>
+
+                  </form>
+
+                <% } else { %>
+
+                  <span style="color: green; font-weight: 600;">
+                    Completed
+                  </span>
+
+                <% } %>
+
+              </td>
+
+            </tr>
+
+          <% }) %>
+
+        </tbody>
+
+      </table>
 
     </div>
 

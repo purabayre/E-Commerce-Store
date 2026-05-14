@@ -1,27 +1,96 @@
 const path = require("path");
 const fs = require("fs");
+const Product = require("../models/Product");
+const Order = require("../models/Order");
+const OrderItem = require("../models/OrderItem");
+const User = require("../models/User");
 const { validationResult } = require("express-validator");
-const { Product } = require("../models");
+const { Op, fn, col, literal } = require("sequelize");
 
-exports.getProducts = async (req, res) => {
+exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.findAll({
-      where: {
-        isActive: true,
-      },
+    // CURRENT MONTH RANGE
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1,
+    );
+
+    const endOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const products = await Product.findAll();
+
+    // ORDERS
+    const orders = await Order.findAll({
+      include: [
+        User,
+        {
+          model: OrderItem,
+          include: [Product],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 
+    // TOTAL REVENUE THIS MONTH
+    const monthlyRevenue = await Order.sum("totalAmount", {
+      where: {
+        createdAt: {
+          [Op.between]: [startOfMonth, endOfMonth],
+        },
+      },
+    });
+
+    // PENDING ORDERS COUNT
+    const pendingOrdersCount = await Order.count({
+      where: {
+        status: "pending",
+      },
+    });
+
+    // TOP 5 PRODUCTS BY REVENUE
+    const topProducts = await OrderItem.findAll({
+      attributes: [
+        "ProductId",
+        [fn("SUM", literal("quantity * price")), "revenue"],
+      ],
+
+      include: [
+        {
+          model: Product,
+          attributes: ["name"],
+        },
+      ],
+
+      group: ["ProductId", "Product.id"],
+
+      order: [[literal("revenue"), "DESC"]],
+
+      limit: 5,
+    });
+
     res.render("admin/products", {
-      pageTitle: "Admin Products",
+      pageTitle: "Products",
       products,
+      orders,
+
+      monthlyRevenue: monthlyRevenue || 0,
+      pendingOrdersCount,
+      topProducts,
+
+      csrfToken: req.csrfToken(),
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).send("Server Error");
+    next(err);
   }
 };
-
 exports.getAddProduct = (req, res) => {
   res.render("admin/add-product", {
     pageTitle: "Add Product",
@@ -148,5 +217,73 @@ exports.getProductImage = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).send("Server Error");
+  }
+};
+
+exports.updateOrderStatus = async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId;
+
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      req.flash("error", "Order not found");
+
+      return res.redirect("/admin/orders");
+    }
+
+    let nextStatus = null;
+
+    switch (order.status) {
+      case "pending":
+        nextStatus = "processing";
+        order.processingAt = new Date();
+        break;
+
+      case "processing":
+        nextStatus = "shipped";
+        order.shippedAt = new Date();
+        break;
+
+      case "shipped":
+        nextStatus = "delivered";
+        order.deliveredAt = new Date();
+        break;
+
+      case "delivered":
+        req.flash("success", "Order already delivered");
+
+        return res.redirect("/admin/orders");
+
+      default:
+        nextStatus = "pending";
+    }
+
+    order.status = nextStatus;
+
+    await order.save();
+
+    req.flash("success", `Order marked as ${nextStatus}`);
+
+    res.redirect("/admin/orders");
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.findAll({
+      include: [User, OrderItem],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.render("admin/orders", {
+      pageTitle: "Manage Orders",
+      orders,
+      csrfToken: req.csrfToken(),
+    });
+  } catch (err) {
+    next(err);
   }
 };

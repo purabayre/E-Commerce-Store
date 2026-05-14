@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Add Product</title>
+  <title>Admin Dashboard</title>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/admin/style.css">
-  
+
+  <link
+    rel="stylesheet"
+    href="/admin/style.css"
+  >
 </head>
 
 <body>
@@ -14,6 +17,8 @@
 <%- include('../partials/nav') %>
 
 <div class="page-wrapper">
+
+  <!-- ADD PRODUCT SECTION -->
 
   <div class="product-form-card">
 
@@ -183,6 +188,222 @@
     </form>
 
   </div>
+
+
+
+  <!-- ORDERS SECTION -->
+<div class="admin-orders-page">
+
+  <div class="orders-header">
+
+    <div>
+
+      <div class="page-badge">
+        Admin Dashboard
+      </div>
+
+      <h1 class="orders-title">
+        Manage Orders
+      </h1>
+
+      <p class="orders-subtitle">
+        Track, manage, and update customer orders.
+      </p>
+
+    </div>
+
+  </div>
+
+  <% if (orders.length === 0) { %>
+
+    <div class="empty-orders">
+
+      <h2>
+        No Orders Found
+      </h2>
+
+      <p>
+        Orders will appear here once customers place them.
+      </p>
+
+    </div>
+
+  <% } else { %>
+
+    <div class="orders-table-wrapper">
+
+      <table class="orders-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Order ID
+            </th>
+
+            <th>
+              Customer
+            </th>
+
+            <th>
+              Products
+            </th>
+
+            <th>
+              Total
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <% orders.forEach(order => { %>
+
+            <tr>
+
+              <!-- ORDER ID -->
+
+              <td>
+                #<%= order.id %>
+              </td>
+
+              <!-- CUSTOMER -->
+
+              <td>
+
+                <div class="customer-name">
+                  <%= order.User.name %>
+                </div>
+
+                <div class="customer-email">
+                  <%= order.User.email %>
+                </div>
+
+              </td>
+
+              <!-- PRODUCTS -->
+
+              <td>
+
+                <% order.OrderItems.forEach(item => { %>
+
+                  <div class="table-product-item">
+
+                    <strong>
+                      <%= item.Product.name %>
+                    </strong>
+
+                    <br>
+
+                    Qty: <%= item.quantity %>
+
+                    × ₹<%= item.price %>
+
+                  </div>
+
+                <% }) %>
+
+              </td>
+
+              <!-- TOTAL -->
+
+              <td>
+                ₹<%= order.totalAmount %>
+              </td>
+
+              <!-- STATUS -->
+
+              <td>
+
+                <span class="status-badge status-<%= order.status %>">
+                  <%= order.status %>
+                </span>
+
+                <div class="timeline-mini">
+
+                  <span class="<%= order.pendingAt ? 'active' : '' %>">
+                    Pending
+                  </span>
+
+                  <span class="<%= order.processingAt ? 'active' : '' %>">
+                    Processing
+                  </span>
+
+                  <span class="<%= order.shippedAt ? 'active' : '' %>">
+                    Shipped
+                  </span>
+
+                  <span class="<%= order.deliveredAt ? 'active' : '' %>">
+                    Delivered
+                  </span>
+
+                </div>
+
+              </td>
+
+              <!-- DATE -->
+
+              <td>
+
+                <%= new Date(order.createdAt)
+                  .toLocaleDateString()
+                %>
+
+              </td>
+
+              <!-- ACTION -->
+
+              <td>
+
+                <form
+                  action="/admin/orders/<%= order.id %>/status"
+                  method="POST"
+                  class="status-form"
+                >
+
+                  <input
+                    type="hidden"
+                    name="_csrf"
+                    value="<%= csrfToken %>"
+                  >
+
+                  <button
+                    type="submit"
+                    class="update-btn"
+                  >
+                    Update
+                  </button>
+
+                </form>
+
+              </td>
+
+            </tr>
+
+          <% }) %>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <% } %>
 
 </div>
 

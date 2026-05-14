@@ -34,5 +34,10 @@ router.post(
 );
 
 router.get("/products/:id/image", adminController.getProductImage);
+router.post(
+  "/orders/:orderId/status",
+  requireAdmin,
+  adminController.updateOrderStatus,
+);
 
 module.exports = router;

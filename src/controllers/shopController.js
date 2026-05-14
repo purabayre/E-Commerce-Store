@@ -126,10 +126,6 @@ exports.getProductDetail = async (req, res) => {
       return res.status(404).send("Product not found");
     }
 
-    /*
-     * REVIEW STATS
-     */
-
     const reviewCount = product.Reviews.length;
 
     const averageRating =
@@ -184,15 +180,11 @@ exports.getCart = async (req, res) => {
   try {
     let cartData;
 
-    console.log(req.session.user);
-
     if (req.session.user) {
       cartData = await cartService.getUserCart(req.session.user.id);
     } else {
       cartData = await cartService.getGuestCart(req.session);
     }
-
-    console.log(cartData);
 
     res.render("shop/cart", {
       pageTitle: "Your Cart",
@@ -503,7 +495,7 @@ exports.addReview = async (req, res, next) => {
     if (existingReview) {
       req.flash("error", "You already reviewed this product");
 
-      return res.redirect(`/shop/product/${productId}`);
+      return res.redirect(`/shop/products/${productId}`);
     }
 
     await Review.create({
@@ -515,7 +507,7 @@ exports.addReview = async (req, res, next) => {
 
     req.flash("success", "Review added successfully");
 
-    res.redirect(`/shop/product/${productId}`);
+    res.redirect(`/shop/products/${productId}`);
   } catch (err) {
     console.log(err);
 
@@ -545,7 +537,7 @@ exports.updateReview = async (req, res, next) => {
     if (review.userId !== userId) {
       req.flash("error", "Unauthorized action");
 
-      return res.redirect(`/shop/product/${review.productId}`);
+      return res.redirect(`/shop/products/${review.productId}`);
     }
 
     // UPDATE REVIEW
@@ -588,7 +580,7 @@ exports.deleteReview = async (req, res, next) => {
     const productId = review.productId;
     await review.destroy();
     req.flash("success", "Review deleted successfully");
-    res.redirect(`/shop/product/${productId}`);
+    res.redirect(`/shop/products/${productId}`);
   } catch (err) {
     console.log(err);
     req.flash("error", "Failed to delete review");
