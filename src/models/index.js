@@ -4,6 +4,7 @@ const Cart = require("./Cart");
 const CartItem = require("./CartItem");
 const Order = require("./Order");
 const OrderItem = require("./OrderItem");
+const Review = require("./Review");
 
 User.hasOne(Cart);
 Cart.belongsTo(User);
@@ -20,6 +21,21 @@ Order.hasMany(OrderItem);
 OrderItem.belongsTo(Order);
 
 OrderItem.belongsTo(Product);
+User.hasMany(Review, {
+  foreignKey: "userId",
+});
+
+Review.belongsTo(User, {
+  foreignKey: "userId",
+});
+
+Product.hasMany(Review, {
+  foreignKey: "productId",
+});
+
+Review.belongsTo(Product, {
+  foreignKey: "productId",
+});
 
 module.exports = {
   User,
@@ -28,4 +44,5 @@ module.exports = {
   CartItem,
   Order,
   OrderItem,
+  Review,
 };

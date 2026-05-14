@@ -34,6 +34,15 @@ const Product = sequelize.define("Product", {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  averageRating: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+
+  reviewCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
 });
 
 module.exports = Product;

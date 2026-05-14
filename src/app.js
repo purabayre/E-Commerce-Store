@@ -12,6 +12,7 @@ const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
 const webhookRoutes = require("./routes/webhook");
+// const reviewRoutes = require("./routes/reviewRoutes");
 
 const sequelize = require("./config/db");
 
@@ -47,12 +48,18 @@ app.use(
 
 app.use(flash());
 
-const csrfProtection = csrf({ cookie: true });
+const csrfProtection = csrf();
+
+// const csrfProtection = csrf();
 
 app.use(csrfProtection);
 
 app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.user;
   res.locals.currentUser = req.session.user || null;
   res.locals.errorMessage = req.flash("error");
@@ -64,19 +71,10 @@ app.use("/auth", authRoutes);
 app.use("/shop", shopRoutes);
 app.use("/admin", adminRoutes);
 app.use("/webhooks", webhookRoutes);
-
-app.use((err, req, res, next) => {
-  if (err.code === "EBADCSRFTOKEN") {
-    return res.status(403).render("403", {
-      pageTitle: "Forbidden",
-    });
-  }
-
-  next(err);
-});
+// app.use("/review", reviewRoutes);
 
 sequelize
-  .sync()
+  .sync({ alter: true })
   .then(() => {
     sessionStore.sync();
 
