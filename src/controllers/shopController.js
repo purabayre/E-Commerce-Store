@@ -295,6 +295,17 @@ exports.getCheckout = async (req, res, next) => {
       return res.redirect("/shop/cart");
     }
 
+    // Check if all products are active
+    for (const item of cart.CartItems) {
+      if (!item.Product.isActive) {
+        req.flash(
+          "error",
+          `Product "${item.Product.name}" is no longer available`,
+        );
+        return res.redirect("/shop/cart");
+      }
+    }
+
     const lineItems = cart.CartItems.map((item) => {
       return {
         price_data: {
@@ -398,6 +409,11 @@ exports.getCheckoutSuccess = async (req, res, next) => {
 
     for (const item of cart.CartItems) {
       const product = item.Product;
+
+      if (!product.isActive) {
+        await transaction.rollback();
+        throw new Error(`Product "${product.name}" is no longer available`);
+      }
 
       if (product.stock < item.quantity) {
         await transaction.rollback();

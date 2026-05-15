@@ -273,6 +273,16 @@ exports.postDeleteProduct = async (req, res) => {
       return res.status(404).send("Product not found");
     }
 
+    // Check if product has any orders
+    const hasOrders = await OrderItem.findOne({
+      where: { ProductId: productId },
+    });
+
+    if (hasOrders) {
+      req.flash("error", "Cannot delete product that has been ordered");
+      return res.redirect("/admin/products");
+    }
+
     product.isActive = false;
 
     await product.save();

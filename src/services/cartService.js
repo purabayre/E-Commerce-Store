@@ -254,14 +254,23 @@ exports.mergeGuestCartToUserCart = async (session, userId) => {
     // Create cart if not exists
     const newCart = await Cart.create({ UserId: userId });
     for (const item of session.cart.items) {
-      await CartItem.create({
-        CartId: newCart.id,
-        ProductId: item.productId,
-        quantity: item.quantity,
-      });
+      const product = await Product.findByPk(item.productId);
+      if (product && product.isActive) {
+        const qty = Math.min(item.quantity, product.stock);
+        if (qty > 0) {
+          await CartItem.create({
+            CartId: newCart.id,
+            ProductId: item.productId,
+            quantity: qty,
+          });
+        }
+      }
     }
   } else {
     for (const guestItem of session.cart.items) {
+      const product = await Product.findByPk(guestItem.productId);
+      if (!product || !product.isActive) continue;
+
       const existingItem = await CartItem.findOne({
         where: {
           CartId: userCart.id,
@@ -269,15 +278,25 @@ exports.mergeGuestCartToUserCart = async (session, userId) => {
         },
       });
 
+      const totalQty =
+        (existingItem ? existingItem.quantity : 0) + guestItem.quantity;
+      const finalQty = Math.min(totalQty, product.stock);
+
       if (existingItem) {
-        existingItem.quantity += guestItem.quantity;
-        await existingItem.save();
+        existingItem.quantity = finalQty;
+        if (finalQty > 0) {
+          await existingItem.save();
+        } else {
+          await existingItem.destroy();
+        }
       } else {
-        await CartItem.create({
-          CartId: userCart.id,
-          ProductId: guestItem.productId,
-          quantity: guestItem.quantity,
-        });
+        if (finalQty > 0) {
+          await CartItem.create({
+            CartId: userCart.id,
+            ProductId: guestItem.productId,
+            quantity: finalQty,
+          });
+        }
       }
     }
   }
