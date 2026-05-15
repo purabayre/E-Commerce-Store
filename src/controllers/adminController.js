@@ -25,7 +25,11 @@ exports.getProducts = async (req, res, next) => {
       59,
     );
 
-    const products = await Product.findAll();
+    const products = await Product.findAll({
+      where: {
+        isActive: true,
+      },
+    });
 
     // ORDERS
     const orders = await Order.findAll({
@@ -262,7 +266,7 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (!order) {
       req.flash("error", "Order not found");
 
-      return res.redirect("/admin/orders");
+      return res.redirect("/shop");
     }
 
     let nextStatus = null;
@@ -286,7 +290,7 @@ exports.updateOrderStatus = async (req, res, next) => {
       case "delivered":
         req.flash("success", "Order already delivered");
 
-        return res.redirect("/admin/orders");
+        return res.redirect("/admin/products");
 
       default:
         nextStatus = "pending";
@@ -298,7 +302,7 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     req.flash("success", `Order marked as ${nextStatus}`);
 
-    res.redirect("/admin/orders");
+    res.redirect("/admin/products");
   } catch (err) {
     next(err);
   }

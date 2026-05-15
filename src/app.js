@@ -6,7 +6,8 @@ const session = require("express-session");
 const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const flash = require("connect-flash");
 const bodyParser = require("body-parser");
-
+const cookieParser = require("cookie-parser");
+const csrf = require("csurf");
 const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");

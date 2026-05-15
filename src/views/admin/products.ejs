@@ -235,136 +235,138 @@
 
   <!-- ORDERS SECTION -->
 
-  <div class="admin-header" style="margin-top: 60px;">
+  <!-- ORDERS SECTION -->
 
-    <div class="header-content">
 
-      <div class="header-badge">
-        📦 Orders
-      </div>
 
-      <h1 class="page-title">
-        Manage Orders
-      </h1>
+<div class="admin-header" style="margin-top: 60px;">
 
-      <p class="page-subtitle">
-        Track and update customer orders.
-      </p>
+  <div class="header-content">
 
+    <div class="header-badge">
+      📦 Orders
     </div>
+
+    <h1 class="page-title">
+      Manage Orders
+    </h1>
+
+    <p class="page-subtitle">
+      Track and update customer orders.
+    </p>
 
   </div>
 
-  <% if (!orders || orders.length === 0) { %>
+</div>
 
-    <div class="empty-state">
+<% if (!orders || orders.length === 0) { %>
 
-      <div class="empty-icon">
-        📭
-      </div>
+  <div class="empty-state">
 
-      <h2 class="empty-title">
-        No Orders Found
-      </h2>
-
-      <p class="empty-text">
-        Orders from customers will appear here.
-      </p>
-
+    <div class="empty-icon">
+      📭
     </div>
 
-  <% } %>
+    <h2 class="empty-title">
+      No Orders Found
+    </h2>
 
-  <% if (orders && orders.length > 0) { %>
+    <p class="empty-text">
+      Orders from customers will appear here.
+    </p>
 
-    <div class="orders-table-wrapper">
+  </div>
 
-      <table class="orders-table">
+<% } %>
 
-        <thead>
+<% if (orders && orders.length > 0) { %>
+
+  <div class="orders-table-wrapper">
+
+    <table class="orders-table">
+
+      <thead>
+
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <% orders.forEach(order => { %>
 
           <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Action</th>
+
+            <td>
+              #<%= order.id %>
+            </td>
+
+            <td>
+              <%= order.User ? order.User.name : 'Unknown User' %>
+            </td>
+
+            <td>
+              ₹<%= Number(order.totalAmount).toFixed(2) %>
+            </td>
+
+            <td>
+
+              <span class="status-badge status-<%= order.status %>">
+                <%= order.status %>
+              </span>
+
+            </td>
+
+            <td>
+              <%= new Date(order.createdAt).toLocaleDateString() %>
+            </td>
+
+            <td>
+
+              <% if (order.status !== 'delivered') { %>
+
+                <form
+                  action="/admin/orders/<%= order.id %>/status"
+                  method="POST"
+                >
+
+                  <button
+                    type="submit"
+                    class="action-btn edit-btn"
+                  >
+                    Update Status
+                  </button>
+
+                </form>
+
+              <% } else { %>
+
+                <span style="color: green; font-weight: 700;">
+                  Completed
+                </span>
+
+              <% } %>
+
+            </td>
+
           </tr>
 
-        </thead>
+        <% }) %>
 
-        <tbody>
+      </tbody>
 
-          <% orders.forEach(order => { %>
+    </table>
 
-            <tr>
+  </div>
 
-              <td>
-                #<%= order.id %>
-              </td>
-
-              <td>
-                <%= order.User ? order.User.name : 'Unknown User' %>
-              </td>
-
-              <td>
-                ₹<%= order.totalAmount %>
-              </td>
-
-              <td>
-                <span class="status-badge status-<%= order.status %>">
-                  <%= order.status %>
-                </span>
-              </td>
-
-              <td>
-                <%= new Date(order.createdAt).toLocaleDateString() %>
-              </td>
-
-              <td>
-
-                <% if (order.status !== 'delivered') { %>
-
-                  <form
-                    action="/admin/orders/<%= order.id %>/status"
-                    method="POST"
-                  >
-
-                   
-
-                    <button
-                      type="submit"
-                      class="action-btn edit-btn"
-                    >
-                      Update Status
-                    </button>
-
-                  </form>
-
-                <% } else { %>
-
-                  <span style="color: green; font-weight: 600;">
-                    Completed
-                  </span>
-
-                <% } %>
-
-              </td>
-
-            </tr>
-
-          <% }) %>
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  <% } %>
-
-</div>
+<% } %>
 
 </body>
 </html>
