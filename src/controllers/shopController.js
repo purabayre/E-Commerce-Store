@@ -382,7 +382,7 @@ exports.getCheckoutSuccess = async (req, res, next) => {
     const order = await Order.create({
       UserId: userId,
       totalAmount: total,
-      status: "processing",
+      status: "pending",
       stripeSessionId: sessionId,
     });
 

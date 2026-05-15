@@ -60,7 +60,7 @@ exports.generateInvoice = (order, res) => {
       .text(item.Product.name, 50, position)
       .text(item.quantity.toString(), 314, position)
       .text(`${item.priceAtPurchase}`, 390, position)
-      .text(`${subtotal.toFixed(2)}`, 468, position);
+      .text(`${subtotal.toFixed(2)}`, 473, position);
 
     position += 25;
   });
@@ -70,7 +70,7 @@ exports.generateInvoice = (order, res) => {
   doc
     .fontSize(16)
     .fillColor("#000")
-    .text(`Total: ${total.toFixed(2)}`, 415);
+    .text(`Total: ${total.toFixed(2)}`, 392);
 
   doc.moveDown(3);
 

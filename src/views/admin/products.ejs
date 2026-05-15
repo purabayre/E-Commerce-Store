@@ -205,21 +205,25 @@
               </a>
 
               <form
-                action="/admin/products/<%= product.id %>/delete"
-                method="POST"
-                class="delete-form"
-              >
+  action="/admin/products/<%= product.id %>/delete"
+  method="POST"
+  class="delete-form"
+>
 
-               
+  <input
+    type="hidden"
+    name="_csrf"
+    value="<%= csrfToken %>"
+  >
 
-                <button
-                  type="submit"
-                  class="action-btn delete-btn"
-                >
-                  Delete
-                </button>
+  <button
+    type="submit"
+    class="action-btn delete-btn"
+  >
+    Delete
+  </button>
 
-              </form>
+</form>
 
             </div>
 
@@ -333,18 +337,24 @@
               <% if (order.status !== 'delivered') { %>
 
                 <form
-                  action="/admin/orders/<%= order.id %>/status"
-                  method="POST"
-                >
+  action="/admin/orders/<%= order.id %>/status"
+  method="POST"
+>
 
-                  <button
-                    type="submit"
-                    class="action-btn edit-btn"
-                  >
-                    Update Status
-                  </button>
+  <input
+    type="hidden"
+    name="_csrf"
+    value="<%= csrfToken %>"
+  >
 
-                </form>
+  <button
+    type="submit"
+    class="action-btn edit-btn"
+  >
+    Update Status
+  </button>
+
+</form>
 
               <% } else { %>
 

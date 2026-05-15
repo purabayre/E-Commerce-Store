@@ -7,7 +7,7 @@ const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const flash = require("connect-flash");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const csrf = require("csurf");
+const csrfProtection = require("./middleware/csrfProtection");
 const authRoutes = require("./routes/auth");
 const shopRoutes = require("./routes/shop");
 const adminRoutes = require("./routes/admin");
@@ -45,12 +45,27 @@ app.use(
 app.use(flash());
 
 app.use("/webhooks", webhookRoutes);
+app.use((req, res, next) => {
+  if (req.is("multipart/form-data")) {
+    return next();
+  }
+
+  csrfProtection(req, res, (err) => {
+    if (!err) {
+      res.locals.csrfToken = req.csrfToken();
+    }
+    next(err);
+  });
+});
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.user;
   res.locals.currentUser = req.session.user || null;
   res.locals.errorMessage = req.flash("error");
   res.locals.successMessage = req.flash("success");
+  if (!res.locals.csrfToken && req.csrfToken) {
+    res.locals.csrfToken = req.csrfToken();
+  }
 
   next();
 });

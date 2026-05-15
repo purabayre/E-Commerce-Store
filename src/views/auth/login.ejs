@@ -68,13 +68,18 @@
       <% } %>
 
       <form
-        action="/auth/login"
-        method="POST"
-        class="auth-form"
-      >
+  action="/auth/login"
+  method="POST"
+  class="auth-form"
+>
 
-       
-        <div class="form-group">
+  <input
+    type="hidden"
+    name="_csrf"
+    value="<%= csrfToken %>"
+  >
+
+  <div class="form-group">
 
           <label class="form-label">
             Email Address

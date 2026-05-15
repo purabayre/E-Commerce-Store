@@ -4,6 +4,14 @@ const adminController = require("../controllers/adminController");
 const requireAdmin = require("../middleware/requireAdmin");
 const upload = require("../middleware/upload");
 const { productValidation } = require("../validators/productValidators");
+const csrfProtection = require("../middleware/csrfProtection");
+
+const setCsrfToken = (req, res, next) => {
+  if (req.csrfToken) {
+    res.locals.csrfToken = req.csrfToken();
+  }
+  next();
+};
 
 router.get("/products", requireAdmin, adminController.getProducts);
 
@@ -13,7 +21,8 @@ router.post(
   "/products",
   requireAdmin,
   upload.single("image"),
-
+  csrfProtection,
+  setCsrfToken,
   productValidation,
   adminController.postAddProduct,
 );
@@ -24,6 +33,8 @@ router.post(
   "/products/:id",
   requireAdmin,
   upload.single("image"),
+  csrfProtection,
+  setCsrfToken,
   productValidation,
   adminController.postEditProduct,
 );

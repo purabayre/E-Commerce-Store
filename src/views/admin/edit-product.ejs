@@ -80,15 +80,19 @@
       <!-- FORM SECTION -->
 
       <form
-        action="/admin/products/<%= product.id %>"
-        method="POST"
-        enctype="multipart/form-data"
-        class="edit-form"
-      >
+  action="/admin/products/<%= product.id %>"
+  method="POST"
+  enctype="multipart/form-data"
+  class="edit-form"
+>
 
-        
+  <input
+    type="hidden"
+    name="_csrf"
+    value="<%= csrfToken %>"
+  >
 
-        <div class="form-grid">
+  <div class="form-grid">
 
           <div class="form-group full-width">
 

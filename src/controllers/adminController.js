@@ -265,8 +265,12 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     if (!order) {
       req.flash("error", "Order not found");
-
       return res.redirect("/shop");
+    }
+
+    // 🔥 FIX: ensure status exists
+    if (!order.status) {
+      order.status = "pending";
     }
 
     let nextStatus = null;
@@ -289,11 +293,10 @@ exports.updateOrderStatus = async (req, res, next) => {
 
       case "delivered":
         req.flash("success", "Order already delivered");
-
         return res.redirect("/admin/products");
 
       default:
-        nextStatus = "pending";
+        return res.redirect("/admin/products");
     }
 
     order.status = nextStatus;
