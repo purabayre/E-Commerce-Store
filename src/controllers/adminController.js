@@ -9,6 +9,8 @@ const { Op, fn, literal } = require("sequelize");
 
 exports.getProducts = async (req, res, next) => {
   try {
+    const adminId = req.session.user.id;
+
     // CURRENT MONTH RANGE
     const startOfMonth = new Date(
       new Date().getFullYear(),
@@ -28,38 +30,83 @@ exports.getProducts = async (req, res, next) => {
     const products = await Product.findAll({
       where: {
         isActive: true,
+        UserId: adminId,
       },
     });
 
-    // ORDERS
+    // ORDERS for admin-owned products
     const orders = await Order.findAll({
       include: [
         User,
         {
           model: OrderItem,
-          include: [Product],
+          include: [
+            {
+              model: Product,
+              where: {
+                UserId: adminId,
+              },
+            },
+          ],
+          required: true,
         },
       ],
       order: [["createdAt", "DESC"]],
+      distinct: true,
     });
 
-    // TOTAL REVENUE THIS MONTH
-    const monthlyRevenue = await Order.sum("totalAmount", {
-      where: {
-        createdAt: {
-          [Op.between]: [startOfMonth, endOfMonth],
+    // TOTAL REVENUE THIS MONTH FROM ADMIN PRODUCTS
+    const revenueResult = await OrderItem.findAll({
+      attributes: [[fn("SUM", literal("quantity * price")), "revenue"]],
+      include: [
+        {
+          model: Product,
+          where: {
+            UserId: adminId,
+          },
+          attributes: [],
         },
-      },
+        {
+          model: Order,
+          attributes: [],
+          where: {
+            createdAt: {
+              [Op.between]: [startOfMonth, endOfMonth],
+            },
+          },
+        },
+      ],
+      raw: true,
     });
 
-    // PENDING ORDERS COUNT
+    const monthlyRevenue = revenueResult[0]
+      ? Number(revenueResult[0].revenue || 0)
+      : 0;
+
+    // PENDING ORDERS COUNT for admin-owned products
     const pendingOrdersCount = await Order.count({
       where: {
         status: "pending",
       },
+      include: [
+        {
+          model: OrderItem,
+          include: [
+            {
+              model: Product,
+              where: {
+                UserId: adminId,
+              },
+              attributes: [],
+            },
+          ],
+          required: true,
+        },
+      ],
+      distinct: true,
     });
 
-    // TOP 5 PRODUCTS BY REVENUE
+    // TOP 5 PRODUCTS BY REVENUE for admin-owned products
     const topProducts = await OrderItem.findAll({
       attributes: [
         "ProductId",
@@ -70,13 +117,14 @@ exports.getProducts = async (req, res, next) => {
         {
           model: Product,
           attributes: ["name"],
+          where: {
+            UserId: adminId,
+          },
         },
       ],
 
       group: ["ProductId", "Product.id"],
-
       order: [[literal("revenue"), "DESC"]],
-
       limit: 5,
     });
 
@@ -84,8 +132,7 @@ exports.getProducts = async (req, res, next) => {
       pageTitle: "Products",
       products,
       orders,
-
-      monthlyRevenue: monthlyRevenue || 0,
+      monthlyRevenue,
       pendingOrdersCount,
       topProducts,
     });
@@ -129,6 +176,7 @@ exports.postAddProduct = async (req, res) => {
       stock,
       category,
       imagePath: req.file.path,
+      UserId: req.session.user.id,
     });
 
     req.flash("success", "Product created");
@@ -147,7 +195,7 @@ exports.getEditProduct = async (req, res) => {
 
     const product = await Product.findByPk(productId);
 
-    if (!product) {
+    if (!product || product.UserId !== req.session.user.id) {
       return res.status(404).send("Product not found");
     }
 
@@ -169,7 +217,7 @@ exports.postEditProduct = async (req, res) => {
 
     const product = await Product.findByPk(productId);
 
-    if (!product) {
+    if (!product || product.UserId !== req.session.user.id) {
       return res.status(404).send("Product not found");
     }
 
@@ -221,7 +269,7 @@ exports.postDeleteProduct = async (req, res) => {
 
     const product = await Product.findByPk(productId);
 
-    if (!product) {
+    if (!product || product.UserId !== req.session.user.id) {
       return res.status(404).send("Product not found");
     }
 
@@ -259,13 +307,30 @@ exports.getProductImage = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res, next) => {
   try {
+    const adminId = req.session.user.id;
     const orderId = req.params.orderId;
 
-    const order = await Order.findByPk(orderId);
+    const order = await Order.findByPk(orderId, {
+      include: [
+        {
+          model: OrderItem,
+          required: true,
+          include: [
+            {
+              model: Product,
+              required: true,
+              where: {
+                UserId: adminId,
+              },
+            },
+          ],
+        },
+      ],
+    });
 
     if (!order) {
-      req.flash("error", "Order not found");
-      return res.redirect("/shop");
+      req.flash("error", "Order not found or not owned by you");
+      return res.redirect("/admin/products");
     }
 
     // 🔥 FIX: ensure status exists

@@ -30,6 +30,11 @@ const Product = sequelize.define("Product", {
     type: DataTypes.STRING,
   },
 
+  UserId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
