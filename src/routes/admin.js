@@ -49,6 +49,7 @@ router.get("/products/:id/image", adminController.getProductImage);
 router.post(
   "/orders/:orderId/status",
   requireAdmin,
+  csrfProtection,
   adminController.updateOrderStatus,
 );
 

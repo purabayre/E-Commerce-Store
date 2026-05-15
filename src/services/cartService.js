@@ -173,6 +173,34 @@ exports.getUserCart = async (userId) => {
     total,
   };
 };
+// get guest cart
+exports.getGuestCart = (session) => {
+  if (!session.cart || !session.cart.items) {
+    return {
+      items: [],
+      total: 0,
+    };
+  }
+
+  let total = 0;
+
+  const items = session.cart.items.map((item) => {
+    const subtotal = item.quantity * item.product.price;
+    total += subtotal;
+
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+      subtotal,
+      product: item.product,
+    };
+  });
+
+  return {
+    items,
+    total,
+  };
+};
 // Update guest cart
 exports.updateGuestCartItem = (session, productId, quantity) => {
   if (!session.cart) return;
@@ -210,4 +238,50 @@ exports.removeUserCartItem = async (cartItemId) => {
   if (!cartItem) return;
 
   await cartItem.destroy();
+};
+
+// Merge guest cart into user cart
+exports.mergeGuestCartToUserCart = async (session, userId) => {
+  if (!session.cart || !session.cart.items || session.cart.items.length === 0) {
+    return;
+  }
+
+  const userCart = await Cart.findOne({
+    where: { UserId: userId },
+  });
+
+  if (!userCart) {
+    // Create cart if not exists
+    const newCart = await Cart.create({ UserId: userId });
+    for (const item of session.cart.items) {
+      await CartItem.create({
+        CartId: newCart.id,
+        ProductId: item.productId,
+        quantity: item.quantity,
+      });
+    }
+  } else {
+    for (const guestItem of session.cart.items) {
+      const existingItem = await CartItem.findOne({
+        where: {
+          CartId: userCart.id,
+          ProductId: guestItem.productId,
+        },
+      });
+
+      if (existingItem) {
+        existingItem.quantity += guestItem.quantity;
+        await existingItem.save();
+      } else {
+        await CartItem.create({
+          CartId: userCart.id,
+          ProductId: guestItem.productId,
+          quantity: guestItem.quantity,
+        });
+      }
+    }
+  }
+
+  // Clear guest cart
+  session.cart = null;
 };

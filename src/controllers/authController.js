@@ -5,6 +5,7 @@ const emailService = require("../services/emailService");
 const { Op } = require("sequelize");
 
 const { User, Cart } = require("../models");
+const cartService = require("../services/cartService");
 
 exports.getRegister = (req, res) => {
   res.render("auth/register", {
@@ -96,6 +97,9 @@ exports.postLogin = async (req, res) => {
       role: user.role,
     };
 
+    // Merge guest cart if exists
+    await cartService.mergeGuestCartToUserCart(req.session, user.id);
+
     req.session.save((err) => {
       if (err) {
         console.log(err);
@@ -142,23 +146,27 @@ exports.postForgotPassword = async (req, res) => {
 
     user.resetToken = token;
 
-    user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
+    user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
 
     await user.save();
 
-    const resetLink = `http://localhost:3000/auth/reset/${token}`;
+    try {
+      const resetLink = `http://localhost:3000/auth/reset/${token}`;
 
-    const emailStatus = await emailService.sendEmail(
-      user.email,
-      "Password Reset",
-      `
-        <h2>Password Reset</h2>
-        <p>Click below to reset your password:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>This link expires in 1 hour.</p>
-      `,
-    );
-    console.log("reset password link sent:", emailStatus.success);
+      const emailStatus = await emailService.sendEmail(
+        user.email,
+        "Password Reset",
+        `
+          <h2>Password Reset</h2>
+          <p>Click below to reset your password:</p>
+          <a href="${resetLink}">${resetLink}</a>
+          <p>This link expires in 1 hour.</p>
+        `,
+      );
+      console.log("reset password link sent:", emailStatus.success);
+    } catch (emailErr) {
+      console.error("Failed to send password reset email:", emailErr);
+    }
 
     req.flash("success", "If that email exists, a reset link has been sent.");
 
@@ -211,7 +219,7 @@ exports.postResetPassword = async (req, res) => {
     const user = await User.findOne({
       where: {
         resetToken: token,
-        resetTokenExpiration: {
+        resetTokenExpiry: {
           [Op.gt]: Date.now(),
         },
       },

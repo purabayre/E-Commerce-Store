@@ -15,6 +15,7 @@ const OrderItem = require("../models/OrderItem");
 
 const emailService = require("../services/emailService");
 const pdfService = require("../services/pdfService");
+const sequelize = require("../config/db");
 
 exports.getShop = async (req, res) => {
   try {
@@ -329,6 +330,7 @@ exports.getCheckout = async (req, res, next) => {
 };
 
 exports.getCheckoutSuccess = async (req, res, next) => {
+  const transaction = await sequelize.transaction();
   try {
     const sessionId = req.query.session_id;
 
@@ -340,15 +342,18 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       where: {
         stripeSessionId: sessionId,
       },
+      transaction,
     });
 
     if (existingOrder) {
+      await transaction.commit();
       return res.redirect("/shop/orders");
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== "paid") {
+      await transaction.rollback();
       req.flash("error", "Payment not completed");
 
       return res.redirect("/shop/cart");
@@ -367,9 +372,11 @@ exports.getCheckoutSuccess = async (req, res, next) => {
           include: [Product],
         },
       ],
+      transaction,
     });
 
     if (!cart || cart.CartItems.length === 0) {
+      await transaction.rollback();
       return res.redirect("/shop/cart");
     }
 
@@ -379,54 +386,69 @@ exports.getCheckoutSuccess = async (req, res, next) => {
       total += item.Product.price * item.quantity;
     });
 
-    const order = await Order.create({
-      UserId: userId,
-      totalAmount: total,
-      status: "pending",
-      stripeSessionId: sessionId,
-    });
+    const order = await Order.create(
+      {
+        UserId: userId,
+        totalAmount: total,
+        status: "pending",
+        stripeSessionId: sessionId,
+      },
+      { transaction },
+    );
 
     for (const item of cart.CartItems) {
       const product = item.Product;
 
       if (product.stock < item.quantity) {
+        await transaction.rollback();
         throw new Error(`Insufficient stock for ${product.name}`);
       }
 
-      await OrderItem.create({
-        OrderId: order.id,
-        ProductId: product.id,
-        quantity: item.quantity,
-        priceAtPurchase: product.price,
-      });
+      await OrderItem.create(
+        {
+          OrderId: order.id,
+          ProductId: product.id,
+          quantity: item.quantity,
+          priceAtPurchase: product.price,
+        },
+        { transaction },
+      );
 
       product.stock -= item.quantity;
 
-      await product.save();
+      await product.save({ transaction });
     }
 
     await CartItem.destroy({
       where: {
         CartId: cart.id,
       },
+      transaction,
     });
 
-    const emailStatus = await emailService.sendEmail(
-      req.session.user.email,
-      "You checkOut successfully",
-      `
-        <h1>Thank You!</h1>
+    await transaction.commit();
 
-        <p>Your order #${order.id} has been placed successfully.</p>
-      `,
-    );
+    try {
+      const emailStatus = await emailService.sendEmail(
+        req.session.user.email,
+        "You checkOut successfully",
+        `
+          <h1>Thank You!</h1>
 
-    console.log("checkout success email sent:", emailStatus.success);
+          <p>Your order #${order.id} has been placed successfully.</p>
+        `,
+      );
+
+      console.log("checkout success email sent:", emailStatus.success);
+    } catch (emailErr) {
+      console.error("Failed to send order confirmation email:", emailErr);
+    }
 
     req.flash("success", "Order placed successfully");
 
     res.redirect("/shop/orders");
   } catch (err) {
+    await transaction.rollback();
     next(err);
   }
 };
